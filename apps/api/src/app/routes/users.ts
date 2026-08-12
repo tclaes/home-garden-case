@@ -5,16 +5,14 @@ import {
   internalServerErrorResponseSchema,
   notFoundErrorResponseSchema,
   validationErrorResponseSchema,
-} from '../schemas/error.schema';
-import { emptyResponseSchema } from '../schemas/general.schema';
-import {
+  emptyResponseSchema,
   createUserSchema,
   emailParamsSchema,
   updateUserSchema,
   userIdParamsSchema,
   userResponseSchema,
   usersResponseSchema,
-} from '../schemas/user.schema';
+} from '@itp-home-garden/shared-api-contracts';
 import { UserService } from '../services/user.service';
 
 export default async function (fastify: FastifyInstance) {

@@ -99,6 +99,8 @@
     }
   },
   "dependencies": {
+    "@itp-home-garden/shared-api-contracts": "*",
+    "@itp-home-garden/shared-domain": "*",
     "@fastify/autoload": "~6.0.3",
     "@fastify/awilix": "^8.0.0",
     "@fastify/sensible": "~6.0.2",
