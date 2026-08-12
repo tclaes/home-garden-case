@@ -5,15 +5,13 @@ import {
   internalServerErrorResponseSchema,
   notFoundErrorResponseSchema,
   validationErrorResponseSchema,
-} from '../schemas/error.schema';
-import {
   createGardenSchema,
   gardenIdParamsSchema,
   gardenResponseSchema,
   gardensResponseSchema,
   updateGardenSchema,
-} from '../schemas/garden.schema';
-import { emptyResponseSchema } from '../schemas/general.schema';
+  emptyResponseSchema,
+} from '@itp-home-garden/shared-api-contracts';
 import { GardenService } from '../services/garden.service';
 
 export default async function (fastify: FastifyInstance) {

@@ -1,7 +1,8 @@
+import { checkGardenCapacity, sumPlantSurfaceArea } from '@itp-home-garden/shared-domain';
+import { createPlantSchema, updatePlantSchema } from '@itp-home-garden/shared-api-contracts';
 import { GardenRepository } from '../database/repositories/garden.repository';
 import { PlantRepository } from '../database/repositories/plant.repository';
 import { NewPlant, Plant, PlantUpdate } from '../database/types';
-import { createPlantSchema, updatePlantSchema } from '../schemas/plant.schema';
 import { NotFoundError, ValidationError } from '../shared/errors';
 
 export class PlantService {
@@ -55,12 +56,15 @@ export class PlantService {
 
     // Check if total surface area would be exceeded
     const existingPlants = await this.plantRepository.findByGardenId(validatedData.gardenId);
-    const totalUsedArea = existingPlants.reduce((sum, plant) => sum + plant.surfaceAreaRequired, 0);
-    const newTotalArea = totalUsedArea + validatedData.surfaceAreaRequired;
+    const capacity = checkGardenCapacity({
+      totalSurfaceArea: garden.totalSurfaceArea,
+      usedSurfaceArea: sumPlantSurfaceArea(existingPlants),
+      requestedSurfaceArea: validatedData.surfaceAreaRequired,
+    });
 
-    if (newTotalArea > garden.totalSurfaceArea) {
+    if (capacity.exceedsCapacity) {
       throw new ValidationError(
-        `Cannot add plant: total surface area required (${newTotalArea}m²) would exceed garden's total surface area (${garden.totalSurfaceArea}m²)`,
+        `Cannot add plant: total surface area required (${capacity.totalSurfaceArea}m²) would exceed garden's total surface area (${garden.totalSurfaceArea}m²)`,
       );
     }
 
@@ -101,14 +105,15 @@ export class PlantService {
       }
 
       const existingPlants = await this.plantRepository.findByGardenId(targetGardenId);
-      const totalUsedArea = existingPlants
-        .filter((p) => p.plantId !== plantId)
-        .reduce((sum, plant) => sum + plant.surfaceAreaRequired, 0);
-      const newTotalArea = totalUsedArea + finalSurfaceArea;
+      const capacity = checkGardenCapacity({
+        totalSurfaceArea: garden.totalSurfaceArea,
+        usedSurfaceArea: sumPlantSurfaceArea(existingPlants, plantId),
+        requestedSurfaceArea: finalSurfaceArea,
+      });
 
-      if (newTotalArea > garden.totalSurfaceArea) {
+      if (capacity.exceedsCapacity) {
         throw new ValidationError(
-          `Cannot update plant: total surface area required (${newTotalArea}m²) would exceed garden's total surface area (${garden.totalSurfaceArea}m²)`,
+          `Cannot update plant: total surface area required (${capacity.totalSurfaceArea}m²) would exceed garden's total surface area (${garden.totalSurfaceArea}m²)`,
         );
       }
     }
