@@ -44,3 +44,16 @@ Thumbs.db
 .github/instructions/nx.instructions.md
 
 db.sqlite
+
+# Next.js
+.next
+out
+test-output
+
+# Environment variables
+.env
+.env.local
+.env.*.local
+
+vite.config.*.timestamp*
+vitest.config.*.timestamp*
