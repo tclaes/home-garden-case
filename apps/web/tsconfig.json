@@ -1,0 +1,82 @@
+{
+  "extends": "../../tsconfig.base.json",
+  "compilerOptions": {
+    "jsx": "preserve",
+    "noEmit": true,
+    "emitDeclarationOnly": false,
+    "esModuleInterop": true,
+    "module": "esnext",
+    "moduleResolution": "bundler",
+    "resolveJsonModule": true,
+    "lib": [
+      "dom",
+      "dom.iterable",
+      "esnext"
+    ],
+    "allowJs": true,
+    "allowSyntheticDefaultImports": true,
+    "forceConsistentCasingInFileNames": true,
+    "incremental": true,
+    "plugins": [
+      {
+        "name": "next"
+      }
+    ],
+    "paths": {
+      "@/*": [
+        "./src/*"
+      ]
+    },
+    "outDir": "dist",
+    "rootDir": "src",
+    "tsBuildInfoFile": "dist/tsconfig.tsbuildinfo"
+  },
+  "include": [
+    "../../apps/web/.next/types/**/*.ts",
+    "../../dist/apps/web/.next/types/**/*.ts",
+    "next-env.d.ts",
+    "src/**/*.js",
+    "src/**/*.jsx",
+    "src/**/*.ts",
+    "src/**/*.tsx",
+    ".next/types/**/*.ts"
+  ],
+  "exclude": [
+    "out-tsc",
+    "dist",
+    "node_modules",
+    "jest.config.ts",
+    "src/**/*.spec.ts",
+    "src/**/*.test.ts",
+    ".next",
+    "eslint.config.js",
+    "eslint.config.cjs",
+    "eslint.config.mjs"
+  ],
+  "references": [
+    {
+      "path": "../../libs/shared/domain"
+    },
+    {
+      "path": "../../libs/web/ui"
+    },
+    {
+      "path": "../../libs/web/feature-plants"
+    },
+    {
+      "path": "../../libs/web/feature-gardens"
+    },
+    {
+      "path": "../../libs/web/data-access-plants"
+    },
+    {
+      "path": "../../libs/web/data-access-gardens"
+    },
+    {
+      "path": "../../libs/web/api-client"
+    },
+    {
+      "path": "../../libs/shared/api-contracts"
+    }
+  ]
+}
