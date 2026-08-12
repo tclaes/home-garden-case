@@ -8,7 +8,7 @@ z.globalRegistry.add(gardenIdParamsSchema, { id: 'GardenId' });
 
 export const createGardenSchema = z
   .object({
-    gardenName: z.string().min(1, 'Garden name is required').trim(),
+    gardenName: z.string().trim().min(1, 'Garden name is required'),
     totalSurfaceArea: z.number().nonnegative('Total surface area must be a non-negative number'),
     locationDescription: z.string().nullable().optional(),
     latitude: z

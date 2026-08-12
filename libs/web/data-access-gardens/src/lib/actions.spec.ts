@@ -113,4 +113,22 @@ describe('deleteGardenAction', () => {
     expect(revalidateTagMock).toHaveBeenCalledWith(GARDENS_LIST_TAG);
     expect(revalidateTagMock).toHaveBeenCalledWith(gardenTag(7));
   });
+
+  it('treats a 404 (e.g. a retry landing after the resource was already deleted) as success', async () => {
+    resilientFetchMock.mockRejectedValue(new ApiError('Garden with ID 7 not found', 404));
+
+    const result = await deleteGardenAction(7);
+
+    expect(result).toEqual({ ok: true, data: null });
+    expect(revalidateTagMock).toHaveBeenCalledWith(GARDENS_LIST_TAG);
+    expect(revalidateTagMock).toHaveBeenCalledWith(gardenTag(7));
+  });
+
+  it('surfaces a non-404 ApiError as a failure', async () => {
+    resilientFetchMock.mockRejectedValue(new ApiError('server exploded', 500));
+
+    const result = await deleteGardenAction(7);
+
+    expect(result).toEqual({ ok: false, error: 'server exploded' });
+  });
 });

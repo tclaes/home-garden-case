@@ -41,4 +41,9 @@ describe('createGardenSchema', () => {
     const result = createGardenSchema.safeParse({ ...baseGarden, gardenName: '' });
     expect(result.success).toBe(false);
   });
+
+  it('rejects a whitespace-only garden name', () => {
+    const result = createGardenSchema.safeParse({ ...baseGarden, gardenName: '   ' });
+    expect(result.success).toBe(false);
+  });
 });

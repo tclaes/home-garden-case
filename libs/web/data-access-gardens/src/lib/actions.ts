@@ -71,7 +71,12 @@ export async function updateGardenAction(
   }
 }
 
-/** DELETE is idempotent (deleting an already-deleted resource is a no-op), so retries are safe. */
+/**
+ * DELETE is idempotent (deleting an already-deleted resource is a no-op), so retries are safe.
+ * A 404 here means either the resource never existed, or a retry landed after an earlier attempt's
+ * response was lost but had already committed on the server — either way, the desired end state
+ * (resource gone) holds, so we treat it as success rather than surfacing a confusing error.
+ */
 export async function deleteGardenAction(gardenId: number): Promise<ActionResult<null>> {
   try {
     await resilientFetch(apiUrl(`/gardens/${gardenId}`), emptyResponseSchema, {
@@ -83,6 +88,11 @@ export async function deleteGardenAction(gardenId: number): Promise<ActionResult
     revalidateTag(gardenTag(gardenId));
     return { ok: true, data: null };
   } catch (error) {
+    if (error instanceof ApiError && error.status === 404) {
+      revalidateTag(GARDENS_LIST_TAG);
+      revalidateTag(gardenTag(gardenId));
+      return { ok: true, data: null };
+    }
     return toActionError(error, 'Could not delete the garden. Please try again.');
   }
 }

@@ -7,8 +7,8 @@ export const plantIdParamsSchema = z.object({
 z.globalRegistry.add(plantIdParamsSchema, { id: 'PlantId' });
 
 export const createPlantSchema = z.object({
-  plantName: z.string().min(1, 'Plant name is required').trim(),
-  species: z.string().min(1, 'Species is required').trim(),
+  plantName: z.string().trim().min(1, 'Plant name is required'),
+  species: z.string().trim().min(1, 'Species is required'),
   plantType: z.enum(['vegetable', 'fruit', 'flower'], {
     message: 'Plant type must be vegetable, fruit, or flower',
   }),

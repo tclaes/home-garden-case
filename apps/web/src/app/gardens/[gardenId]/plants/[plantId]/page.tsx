@@ -27,6 +27,10 @@ export default async function PlantDetailPage({
     throw error;
   }
 
+  if (plant.gardenId !== gardenId) {
+    notFound();
+  }
+
   const plants = await getPlantsByGardenId(gardenId);
   const usedSurfaceArea = sumPlantSurfaceArea(plants, plantId);
 

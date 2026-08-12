@@ -48,4 +48,14 @@ describe('createPlantSchema', () => {
     const result = createPlantSchema.safeParse(withoutGardenId);
     expect(result.success).toBe(false);
   });
+
+  it('rejects a whitespace-only plant name', () => {
+    const result = createPlantSchema.safeParse({ ...basePlant, plantName: '   ' });
+    expect(result.success).toBe(false);
+  });
+
+  it('rejects a whitespace-only species', () => {
+    const result = createPlantSchema.safeParse({ ...basePlant, species: '   ' });
+    expect(result.success).toBe(false);
+  });
 });

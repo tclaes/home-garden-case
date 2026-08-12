@@ -81,7 +81,11 @@ export async function updatePlantAction(
   }
 }
 
-/** DELETE is idempotent, so retries are safe. */
+/**
+ * DELETE is idempotent, so retries are safe. A 404 means either the resource never existed, or a
+ * retry landed after an earlier attempt's response was lost but had already committed on the
+ * server — either way the desired end state (resource gone) holds, so we treat it as success.
+ */
 export async function deletePlantAction(
   plantId: number,
   gardenId: number,
@@ -97,6 +101,12 @@ export async function deletePlantAction(
     revalidateTag(gardenTag(gardenId));
     return { ok: true, data: null };
   } catch (error) {
+    if (error instanceof ApiError && error.status === 404) {
+      revalidateTag(plantTag(plantId));
+      revalidateTag(plantsForGardenTag(gardenId));
+      revalidateTag(gardenTag(gardenId));
+      return { ok: true, data: null };
+    }
     return toActionError(error, 'Could not delete the plant. Please try again.');
   }
 }

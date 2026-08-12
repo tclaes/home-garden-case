@@ -45,6 +45,42 @@ describe('resilientFetch', () => {
     expect(fetchMock).toHaveBeenCalledTimes(1);
   });
 
+  it('prefers the backend details[0] message over the generic error label', async () => {
+    const fetchMock = vi.fn().mockResolvedValue(
+      jsonResponse(
+        {
+          error: 'Validation error',
+          details: ["Cannot add plant: total surface area required would exceed garden's area"],
+        },
+        400,
+      ),
+    );
+    vi.stubGlobal('fetch', fetchMock);
+
+    await expect(resilientFetch('http://x/test', schema)).rejects.toMatchObject({
+      status: 400,
+      message: "Cannot add plant: total surface area required would exceed garden's area",
+    });
+  });
+
+  it('falls back to the error label when no details array is present', async () => {
+    const fetchMock = vi.fn().mockResolvedValue(jsonResponse({ error: 'Not found error' }, 404));
+    vi.stubGlobal('fetch', fetchMock);
+
+    await expect(resilientFetch('http://x/test', schema)).rejects.toMatchObject({
+      status: 404,
+      message: 'Not found error',
+    });
+  });
+
+  it('does not retry a response that fails schema validation', async () => {
+    const fetchMock = vi.fn().mockResolvedValue(jsonResponse({ ok: 'not-a-boolean' }, 200));
+    vi.stubGlobal('fetch', fetchMock);
+
+    await expect(resilientFetch('http://x/test', schema, { retries: 2 })).rejects.toBeTruthy();
+    expect(fetchMock).toHaveBeenCalledTimes(1);
+  });
+
   it('retries a 500 and succeeds on the next attempt', async () => {
     const fetchMock = vi
       .fn()

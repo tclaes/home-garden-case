@@ -1,4 +1,4 @@
-import type { ZodType } from 'zod/v4';
+import { ZodError, type ZodType } from 'zod/v4';
 import { backoffDelayMs } from './backoff.js';
 import { ApiError, ApiTimeoutError } from './errors.js';
 
@@ -97,10 +97,14 @@ export async function resilientFetch<T>(
         }
 
         const details = await parseErrorBody(response);
+        const detailsObj =
+          details && typeof details === 'object' ? (details as Record<string, unknown>) : undefined;
+        const detailsArray = Array.isArray(detailsObj?.details) ? detailsObj.details : undefined;
         const message =
-          details && typeof details === 'object' && 'error' in details
-            ? String((details as { error: unknown }).error)
-            : `Request to ${url} failed with status ${response.status}`;
+          (typeof detailsArray?.[0] === 'string' && detailsArray[0]) ||
+          (typeof detailsObj?.message === 'string' && detailsObj.message) ||
+          (typeof detailsObj?.error === 'string' && detailsObj.error) ||
+          `Request to ${url} failed with status ${response.status}`;
         throw new ApiError(message, response.status, details);
       }
 
@@ -110,7 +114,7 @@ export async function resilientFetch<T>(
 
       return schema.parse(await response.json());
     } catch (error) {
-      if (error instanceof ApiError) {
+      if (error instanceof ApiError || error instanceof ZodError || error instanceof SyntaxError) {
         throw error;
       }
       if (attemptsRemain) {
