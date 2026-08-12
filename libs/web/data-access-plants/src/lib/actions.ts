@@ -11,7 +11,7 @@ import {
 } from '@itp-home-garden/shared-api-contracts';
 import { ApiError, apiUrl, authHeaders, resilientFetch } from '@itp-home-garden/web-api-client';
 import { gardenTag } from '@itp-home-garden/web-data-access-gardens';
-import { revalidateTag } from 'next/cache';
+import { updateTag } from 'next/cache';
 import { plantsForGardenTag, plantTag } from './cache-tags.js';
 
 export type ActionResult<T> = { ok: true; data: T } | { ok: false; error: string };
@@ -41,8 +41,8 @@ export async function createPlantAction(input: CreatePlantInput): Promise<Action
       body: parsed.data,
       retries: 0,
     });
-    revalidateTag(plantsForGardenTag(plant.gardenId));
-    revalidateTag(gardenTag(plant.gardenId));
+    updateTag(plantsForGardenTag(plant.gardenId));
+    updateTag(gardenTag(plant.gardenId));
     return { ok: true, data: plant };
   } catch (error) {
     return toActionError(error, 'Could not add the plant. Please try again.');
@@ -68,12 +68,12 @@ export async function updatePlantAction(
       body: parsed.data,
       retries: 2,
     });
-    revalidateTag(plantTag(plantId));
-    revalidateTag(plantsForGardenTag(previousGardenId));
-    revalidateTag(gardenTag(previousGardenId));
+    updateTag(plantTag(plantId));
+    updateTag(plantsForGardenTag(previousGardenId));
+    updateTag(gardenTag(previousGardenId));
     if (plant.gardenId !== previousGardenId) {
-      revalidateTag(plantsForGardenTag(plant.gardenId));
-      revalidateTag(gardenTag(plant.gardenId));
+      updateTag(plantsForGardenTag(plant.gardenId));
+      updateTag(gardenTag(plant.gardenId));
     }
     return { ok: true, data: plant };
   } catch (error) {
@@ -92,9 +92,9 @@ export async function deletePlantAction(
       headers: authHeaders(),
       retries: 2,
     });
-    revalidateTag(plantTag(plantId));
-    revalidateTag(plantsForGardenTag(gardenId));
-    revalidateTag(gardenTag(gardenId));
+    updateTag(plantTag(plantId));
+    updateTag(plantsForGardenTag(gardenId));
+    updateTag(gardenTag(gardenId));
     return { ok: true, data: null };
   } catch (error) {
     return toActionError(error, 'Could not delete the plant. Please try again.');
