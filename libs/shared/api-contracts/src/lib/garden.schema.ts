@@ -53,3 +53,7 @@ z.globalRegistry.add(gardenResponseSchema, { id: 'Garden' });
 export const gardensResponseSchema = z.array(gardenResponseSchema);
 
 z.globalRegistry.add(gardensResponseSchema, { id: 'Gardens' });
+
+export type Garden = z.infer<typeof gardenResponseSchema>;
+export type CreateGardenInput = z.infer<typeof createGardenSchema>;
+export type UpdateGardenInput = z.infer<typeof updateGardenSchema>;

@@ -47,3 +47,7 @@ z.globalRegistry.add(plantResponseSchema, { id: 'Plant' });
 export const plantsResponseSchema = z.array(plantResponseSchema);
 
 z.globalRegistry.add(plantsResponseSchema, { id: 'Plants' });
+
+export type Plant = z.infer<typeof plantResponseSchema>;
+export type CreatePlantInput = z.infer<typeof createPlantSchema>;
+export type UpdatePlantInput = z.infer<typeof updatePlantSchema>;

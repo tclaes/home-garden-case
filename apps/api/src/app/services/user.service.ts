@@ -1,6 +1,6 @@
 import { UserRepository } from '../database/repositories/user.repository';
 import { NewUser, User, UserUpdate } from '../database/types';
-import { createUserSchema, updateUserSchema } from '../schemas/user.schema';
+import { createUserSchema, updateUserSchema } from '@itp-home-garden/shared-api-contracts';
 import { ConflictError, NotFoundError } from '../shared/errors';
 
 export class UserService {
