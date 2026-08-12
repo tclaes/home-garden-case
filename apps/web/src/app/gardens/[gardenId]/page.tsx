@@ -3,6 +3,7 @@ import { notFound } from 'next/navigation';
 import { Suspense } from 'react';
 import { getGardenById } from '@itp-home-garden/web-data-access-gardens';
 import { ApiError } from '@itp-home-garden/web-api-client';
+import { gardenIdParamsSchema } from '@itp-home-garden/shared-api-contracts';
 import { DeleteGardenButton } from '@itp-home-garden/web-feature-gardens';
 import { GardenCapacitySummary, PlantList } from '@itp-home-garden/web-feature-plants';
 import { buttonVariants } from '@itp-home-garden/web-ui';
@@ -36,7 +37,11 @@ export default async function GardenDetailPage({
   params: Promise<{ gardenId: string }>;
 }) {
   const { gardenId: gardenIdParam } = await params;
-  const gardenId = Number(gardenIdParam);
+  const parsedGardenId = gardenIdParamsSchema.safeParse({ gardenId: gardenIdParam });
+  if (!parsedGardenId.success) {
+    notFound();
+  }
+  const { gardenId } = parsedGardenId.data;
   const garden = await getGardenOrNotFound(gardenId);
 
   return (

@@ -2,6 +2,7 @@ import { notFound } from 'next/navigation';
 import { getGardenById } from '@itp-home-garden/web-data-access-gardens';
 import { ApiError } from '@itp-home-garden/web-api-client';
 import { GardenForm } from '@itp-home-garden/web-feature-gardens';
+import { gardenIdParamsSchema } from '@itp-home-garden/shared-api-contracts';
 
 export const dynamic = 'force-dynamic';
 
@@ -11,7 +12,11 @@ export default async function EditGardenPage({
   params: Promise<{ gardenId: string }>;
 }) {
   const { gardenId: gardenIdParam } = await params;
-  const gardenId = Number(gardenIdParam);
+  const parsedGardenId = gardenIdParamsSchema.safeParse({ gardenId: gardenIdParam });
+  if (!parsedGardenId.success) {
+    notFound();
+  }
+  const { gardenId } = parsedGardenId.data;
 
   let garden;
   try {

@@ -4,6 +4,7 @@ import { ApiError } from '@itp-home-garden/web-api-client';
 import { getGardenById } from '@itp-home-garden/web-data-access-gardens';
 import { getPlantById, getPlantsByGardenId } from '@itp-home-garden/web-data-access-plants';
 import { DeletePlantButton, PlantForm } from '@itp-home-garden/web-feature-plants';
+import { gardenIdParamsSchema, plantIdParamsSchema } from '@itp-home-garden/shared-api-contracts';
 
 export const dynamic = 'force-dynamic';
 
@@ -13,8 +14,13 @@ export default async function PlantDetailPage({
   params: Promise<{ gardenId: string; plantId: string }>;
 }) {
   const { gardenId: gardenIdParam, plantId: plantIdParam } = await params;
-  const gardenId = Number(gardenIdParam);
-  const plantId = Number(plantIdParam);
+  const parsedGardenId = gardenIdParamsSchema.safeParse({ gardenId: gardenIdParam });
+  const parsedPlantId = plantIdParamsSchema.safeParse({ plantId: plantIdParam });
+  if (!parsedGardenId.success || !parsedPlantId.success) {
+    notFound();
+  }
+  const { gardenId } = parsedGardenId.data;
+  const { plantId } = parsedPlantId.data;
 
   let garden;
   let plant;
@@ -25,6 +31,10 @@ export default async function PlantDetailPage({
       notFound();
     }
     throw error;
+  }
+
+  if (plant.gardenId !== gardenId) {
+    notFound();
   }
 
   const plants = await getPlantsByGardenId(gardenId);
