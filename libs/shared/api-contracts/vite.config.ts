@@ -4,10 +4,6 @@ export default defineConfig(() => ({
   root: __dirname,
   cacheDir: '../../../node_modules/.vite/libs/shared/api-contracts',
   plugins: [],
-  // Uncomment this if you are using workers.
-  // worker: {
-  //  plugins: [],
-  // },
   test: {
     name: '@itp-home-garden/shared-api-contracts',
     watch: false,
