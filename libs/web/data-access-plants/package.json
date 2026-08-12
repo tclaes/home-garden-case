@@ -23,7 +23,7 @@
     "@itp-home-garden/web-api-client": "*",
     "@itp-home-garden/web-data-access-gardens": "*",
     "@itp-home-garden/shared-api-contracts": "*",
-    "next": "~15.2.4",
+    "next": "~16.3.0",
     "zod": "^4.1.12"
   }
 }

@@ -3,7 +3,7 @@ import { ApiError } from '@itp-home-garden/web-api-client';
 import { GARDENS_LIST_TAG, gardenTag } from './cache-tags.js';
 
 const resilientFetchMock = vi.fn();
-const revalidateTagMock = vi.fn();
+const updateTagMock = vi.fn();
 
 vi.mock('@itp-home-garden/web-api-client', async () => {
   const actual = await vi.importActual<typeof import('@itp-home-garden/web-api-client')>(
@@ -16,7 +16,7 @@ vi.mock('@itp-home-garden/web-api-client', async () => {
 });
 
 vi.mock('next/cache', () => ({
-  revalidateTag: (...args: unknown[]) => revalidateTagMock(...args),
+  updateTag: (...args: unknown[]) => updateTagMock(...args),
 }));
 
 const { createGardenAction, updateGardenAction, deleteGardenAction } = await import('./actions.js');
@@ -26,7 +26,7 @@ const validGarden = { gardenName: 'Backyard', totalSurfaceArea: 20 };
 describe('createGardenAction', () => {
   beforeEach(() => {
     resilientFetchMock.mockReset();
-    revalidateTagMock.mockReset();
+    updateTagMock.mockReset();
   });
 
   it('rejects invalid input without calling the API', async () => {
@@ -47,7 +47,7 @@ describe('createGardenAction', () => {
       expect.anything(),
       expect.objectContaining({ method: 'POST', retries: 0 }),
     );
-    expect(revalidateTagMock).toHaveBeenCalledWith(GARDENS_LIST_TAG);
+    expect(updateTagMock).toHaveBeenCalledWith(GARDENS_LIST_TAG);
   });
 
   it('surfaces the backend message on an ApiError (e.g. an overcrowding-style validation failure)', async () => {
@@ -56,7 +56,7 @@ describe('createGardenAction', () => {
     const result = await createGardenAction(validGarden);
 
     expect(result).toEqual({ ok: false, error: 'total surface area is invalid' });
-    expect(revalidateTagMock).not.toHaveBeenCalled();
+    expect(updateTagMock).not.toHaveBeenCalled();
   });
 
   it('falls back to a generic message on an unexpected error (e.g. network failure)', async () => {
@@ -74,7 +74,7 @@ describe('createGardenAction', () => {
 describe('updateGardenAction', () => {
   beforeEach(() => {
     resilientFetchMock.mockReset();
-    revalidateTagMock.mockReset();
+    updateTagMock.mockReset();
   });
 
   it('updates the garden and revalidates both the list and the detail tag', async () => {
@@ -88,15 +88,15 @@ describe('updateGardenAction', () => {
       expect.anything(),
       expect.objectContaining({ method: 'PUT', retries: 2 }),
     );
-    expect(revalidateTagMock).toHaveBeenCalledWith(GARDENS_LIST_TAG);
-    expect(revalidateTagMock).toHaveBeenCalledWith(gardenTag(5));
+    expect(updateTagMock).toHaveBeenCalledWith(GARDENS_LIST_TAG);
+    expect(updateTagMock).toHaveBeenCalledWith(gardenTag(5));
   });
 });
 
 describe('deleteGardenAction', () => {
   beforeEach(() => {
     resilientFetchMock.mockReset();
-    revalidateTagMock.mockReset();
+    updateTagMock.mockReset();
   });
 
   it('deletes the garden and revalidates both tags', async () => {
@@ -110,7 +110,7 @@ describe('deleteGardenAction', () => {
       expect.anything(),
       expect.objectContaining({ method: 'DELETE', retries: 2 }),
     );
-    expect(revalidateTagMock).toHaveBeenCalledWith(GARDENS_LIST_TAG);
-    expect(revalidateTagMock).toHaveBeenCalledWith(gardenTag(7));
+    expect(updateTagMock).toHaveBeenCalledWith(GARDENS_LIST_TAG);
+    expect(updateTagMock).toHaveBeenCalledWith(gardenTag(7));
   });
 });

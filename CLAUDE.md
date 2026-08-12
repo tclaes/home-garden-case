@@ -45,7 +45,7 @@ npx nx run @itp-home-garden/web:build    # production build of the frontend
 ## Tech Stack
 
 - Nx monorepo
-- Next.js Frontend 
+- Next.js Frontend (currently pinned to ~16.3.0; use the latest stable version when upgrading)
 
 ## Architecture
 

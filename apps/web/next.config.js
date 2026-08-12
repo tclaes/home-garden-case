@@ -1,6 +1,5 @@
 //@ts-check
 
-// eslint-disable-next-line @typescript-eslint/no-var-requires
 const { composePlugins, withNx } = require('@nx/next');
 
 /**
@@ -10,6 +9,9 @@ const nextConfig = {
   // Use this to set Nx-specific options
   // See: https://nx.dev/recipes/next/next-config-setup
   nx: {},
+  // `next dev` would otherwise write AGENTS.md/CLAUDE.md boilerplate into apps/web on every
+  // run, clashing with the repo's real root CLAUDE.md.
+  agentRules: false,
 };
 
 const plugins = [
