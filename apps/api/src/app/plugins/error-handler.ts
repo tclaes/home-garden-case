@@ -59,8 +59,11 @@ export default fp(async function (fastify: FastifyInstance) {
         fastify.log.error(error);
 
         // Use the statusCode from the error if available, otherwise default to 500
-        return reply.status(500).send({
-          error: 'Internal server error',
+        const statusCode =
+          'statusCode' in error && typeof error.statusCode === 'number' ? error.statusCode : 500;
+
+        return reply.status(statusCode).send({
+          error: statusCode === 500 ? 'Internal server error' : 'Bad request',
           details: [error.message],
         });
       }
