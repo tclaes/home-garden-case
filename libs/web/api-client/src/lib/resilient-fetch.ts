@@ -43,7 +43,7 @@ async function fetchOnce(
     return await fetch(url, {
       method: options.method ?? 'GET',
       headers: {
-        'Content-Type': 'application/json',
+        ...(serializedBody !== undefined ? { 'Content-Type': 'application/json' } : {}),
         ...options.headers,
       },
       body: serializedBody,
