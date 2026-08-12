@@ -34,6 +34,20 @@ describe('resilientFetch', () => {
     await expect(resilientFetch('http://x/test', z.null())).resolves.toBeNull();
   });
 
+  it('treats a 205 response as null', async () => {
+    vi.stubGlobal('fetch', vi.fn().mockResolvedValue(new Response(null, { status: 205 })));
+
+    await expect(resilientFetch('http://x/test', z.null())).resolves.toBeNull();
+  });
+
+  it('does not retry a response that fails schema validation', async () => {
+    const fetchMock = vi.fn().mockResolvedValue(jsonResponse({ ok: 'not-a-boolean' }, 200));
+    vi.stubGlobal('fetch', fetchMock);
+
+    await expect(resilientFetch('http://x/test', schema, { retries: 1 })).rejects.toBeTruthy();
+    expect(fetchMock).toHaveBeenCalledTimes(1);
+  });
+
   it('throws immediately on a non-retryable 4xx, without retrying', async () => {
     const fetchMock = vi.fn().mockResolvedValue(jsonResponse({ error: 'not found' }, 404));
     vi.stubGlobal('fetch', fetchMock);

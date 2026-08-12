@@ -7,7 +7,9 @@ export function getApiBaseUrl(): string {
 }
 
 export function apiUrl(path: string): string {
-  return `${getApiBaseUrl()}${path}`;
+  const baseUrl = getApiBaseUrl().replace(/\/+$/, '');
+  const normalizedPath = path.replace(/^\/+/, '');
+  return `${baseUrl}/${normalizedPath}`;
 }
 
 export function authHeaders(): Record<string, string> {

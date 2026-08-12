@@ -8,7 +8,7 @@ export interface NextFetchOptions {
 }
 
 export interface ResilientFetchOptions {
-  method?: 'GET' | 'POST' | 'PUT' | 'DELETE';
+  method?: string;
   headers?: Record<string, string>;
   /** JSON-serializable request body. */
   body?: unknown;
@@ -33,6 +33,7 @@ function sleep(ms: number): Promise<void> {
 async function fetchOnce(
   url: string,
   options: ResilientFetchOptions,
+  serializedBody: string | undefined,
   timeoutMs: number,
 ): Promise<Response> {
   const controller = new AbortController();
@@ -45,7 +46,7 @@ async function fetchOnce(
         'Content-Type': 'application/json',
         ...options.headers,
       },
-      body: options.body !== undefined ? JSON.stringify(options.body) : undefined,
+      body: serializedBody,
       signal: controller.signal,
       cache: options.cache,
       ...(options.next ? { next: options.next } : {}),
@@ -69,6 +70,42 @@ async function parseErrorBody(response: Response): Promise<unknown> {
 }
 
 /**
+ * Sends the request and retries on network failures or configured retryable status codes.
+ * Deterministic failures (invalid response body, schema mismatch) are handled by the caller,
+ * outside of this retry loop, since retrying them can't change the outcome.
+ */
+async function fetchWithRetry(
+  url: string,
+  options: ResilientFetchOptions,
+  serializedBody: string | undefined,
+  timeoutMs: number,
+  retries: number,
+  retryableStatusCodes: readonly number[],
+): Promise<Response> {
+  for (let attempt = 0; ; attempt++) {
+    const attemptsRemain = attempt < retries;
+
+    let response: Response;
+    try {
+      response = await fetchOnce(url, options, serializedBody, timeoutMs);
+    } catch (error) {
+      if (attemptsRemain) {
+        await sleep(backoffDelayMs(attempt));
+        continue;
+      }
+      throw error;
+    }
+
+    if (!response.ok && retryableStatusCodes.includes(response.status) && attemptsRemain) {
+      await sleep(backoffDelayMs(attempt));
+      continue;
+    }
+
+    return response;
+  }
+}
+
+/**
  * A generic, domain-agnostic fetch wrapper: timeout via AbortSignal, retry with exponential
  * backoff + jitter on 5xx/network failures, and zod validation of the response body.
  *
@@ -83,41 +120,29 @@ export async function resilientFetch<T>(
   const timeoutMs = options.timeoutMs ?? DEFAULT_TIMEOUT_MS;
   const retries = options.retries ?? DEFAULT_RETRIES;
   const retryableStatusCodes = options.retryableStatusCodes ?? DEFAULT_RETRYABLE_STATUS_CODES;
+  const serializedBody = options.body !== undefined ? JSON.stringify(options.body) : undefined;
 
-  for (let attempt = 0; ; attempt++) {
-    const attemptsRemain = attempt < retries;
+  const response = await fetchWithRetry(
+    url,
+    options,
+    serializedBody,
+    timeoutMs,
+    retries,
+    retryableStatusCodes,
+  );
 
-    try {
-      const response = await fetchOnce(url, options, timeoutMs);
-
-      if (!response.ok) {
-        if (retryableStatusCodes.includes(response.status) && attemptsRemain) {
-          await sleep(backoffDelayMs(attempt));
-          continue;
-        }
-
-        const details = await parseErrorBody(response);
-        const message =
-          details && typeof details === 'object' && 'error' in details
-            ? String((details as { error: unknown }).error)
-            : `Request to ${url} failed with status ${response.status}`;
-        throw new ApiError(message, response.status, details);
-      }
-
-      if (response.status === 204) {
-        return schema.parse(null);
-      }
-
-      return schema.parse(await response.json());
-    } catch (error) {
-      if (error instanceof ApiError) {
-        throw error;
-      }
-      if (attemptsRemain) {
-        await sleep(backoffDelayMs(attempt));
-        continue;
-      }
-      throw error;
-    }
+  if (!response.ok) {
+    const details = await parseErrorBody(response);
+    const message =
+      details && typeof details === 'object' && 'error' in details
+        ? String((details as { error: unknown }).error)
+        : `Request to ${url} failed with status ${response.status}`;
+    throw new ApiError(message, response.status, details);
   }
+
+  if (response.status === 204 || response.status === 205) {
+    return schema.parse(null);
+  }
+
+  return schema.parse(await response.json());
 }
