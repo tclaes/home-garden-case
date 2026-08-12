@@ -4,7 +4,7 @@ import { gardenTag } from '@itp-home-garden/web-data-access-gardens';
 import { plantsForGardenTag, plantTag } from './cache-tags.js';
 
 const resilientFetchMock = vi.fn();
-const revalidateTagMock = vi.fn();
+const updateTagMock = vi.fn();
 
 vi.mock('@itp-home-garden/web-api-client', async () => {
   const actual = await vi.importActual<typeof import('@itp-home-garden/web-api-client')>(
@@ -17,7 +17,7 @@ vi.mock('@itp-home-garden/web-api-client', async () => {
 });
 
 vi.mock('next/cache', () => ({
-  revalidateTag: (...args: unknown[]) => revalidateTagMock(...args),
+  updateTag: (...args: unknown[]) => updateTagMock(...args),
 }));
 
 const { createPlantAction, updatePlantAction, deletePlantAction } = await import('./actions.js');
@@ -35,7 +35,7 @@ const validPlant = {
 describe('createPlantAction', () => {
   beforeEach(() => {
     resilientFetchMock.mockReset();
-    revalidateTagMock.mockReset();
+    updateTagMock.mockReset();
   });
 
   it('rejects invalid input without calling the API', async () => {
@@ -51,8 +51,8 @@ describe('createPlantAction', () => {
     const result = await createPlantAction(validPlant);
 
     expect(result.ok).toBe(true);
-    expect(revalidateTagMock).toHaveBeenCalledWith(plantsForGardenTag(1));
-    expect(revalidateTagMock).toHaveBeenCalledWith(gardenTag(1));
+    expect(updateTagMock).toHaveBeenCalledWith(plantsForGardenTag(1));
+    expect(updateTagMock).toHaveBeenCalledWith(gardenTag(1));
   });
 
   it('surfaces the overcrowding error message from the backend', async () => {
@@ -69,7 +69,7 @@ describe('createPlantAction', () => {
 describe('updatePlantAction', () => {
   beforeEach(() => {
     resilientFetchMock.mockReset();
-    revalidateTagMock.mockReset();
+    updateTagMock.mockReset();
   });
 
   it('revalidates only the current garden when it does not change', async () => {
@@ -77,10 +77,10 @@ describe('updatePlantAction', () => {
 
     await updatePlantAction(3, 1, validPlant);
 
-    expect(revalidateTagMock).toHaveBeenCalledWith(plantTag(3));
-    expect(revalidateTagMock).toHaveBeenCalledWith(plantsForGardenTag(1));
-    expect(revalidateTagMock).toHaveBeenCalledWith(gardenTag(1));
-    expect(revalidateTagMock).not.toHaveBeenCalledWith(plantsForGardenTag(2));
+    expect(updateTagMock).toHaveBeenCalledWith(plantTag(3));
+    expect(updateTagMock).toHaveBeenCalledWith(plantsForGardenTag(1));
+    expect(updateTagMock).toHaveBeenCalledWith(gardenTag(1));
+    expect(updateTagMock).not.toHaveBeenCalledWith(plantsForGardenTag(2));
   });
 
   it('revalidates both the old and new garden when the plant moves gardens', async () => {
@@ -88,17 +88,17 @@ describe('updatePlantAction', () => {
 
     await updatePlantAction(3, 1, { ...validPlant, gardenId: 2 });
 
-    expect(revalidateTagMock).toHaveBeenCalledWith(plantsForGardenTag(1));
-    expect(revalidateTagMock).toHaveBeenCalledWith(gardenTag(1));
-    expect(revalidateTagMock).toHaveBeenCalledWith(plantsForGardenTag(2));
-    expect(revalidateTagMock).toHaveBeenCalledWith(gardenTag(2));
+    expect(updateTagMock).toHaveBeenCalledWith(plantsForGardenTag(1));
+    expect(updateTagMock).toHaveBeenCalledWith(gardenTag(1));
+    expect(updateTagMock).toHaveBeenCalledWith(plantsForGardenTag(2));
+    expect(updateTagMock).toHaveBeenCalledWith(gardenTag(2));
   });
 });
 
 describe('deletePlantAction', () => {
   beforeEach(() => {
     resilientFetchMock.mockReset();
-    revalidateTagMock.mockReset();
+    updateTagMock.mockReset();
   });
 
   it('deletes the plant and revalidates its garden', async () => {
@@ -107,9 +107,9 @@ describe('deletePlantAction', () => {
     const result = await deletePlantAction(4, 1);
 
     expect(result).toEqual({ ok: true, data: null });
-    expect(revalidateTagMock).toHaveBeenCalledWith(plantTag(4));
-    expect(revalidateTagMock).toHaveBeenCalledWith(plantsForGardenTag(1));
-    expect(revalidateTagMock).toHaveBeenCalledWith(gardenTag(1));
+    expect(updateTagMock).toHaveBeenCalledWith(plantTag(4));
+    expect(updateTagMock).toHaveBeenCalledWith(plantsForGardenTag(1));
+    expect(updateTagMock).toHaveBeenCalledWith(gardenTag(1));
   });
 
   it('treats a 404 (e.g. a retry landing after the resource was already deleted) as success', async () => {
@@ -118,9 +118,9 @@ describe('deletePlantAction', () => {
     const result = await deletePlantAction(4, 1);
 
     expect(result).toEqual({ ok: true, data: null });
-    expect(revalidateTagMock).toHaveBeenCalledWith(plantTag(4));
-    expect(revalidateTagMock).toHaveBeenCalledWith(plantsForGardenTag(1));
-    expect(revalidateTagMock).toHaveBeenCalledWith(gardenTag(1));
+    expect(updateTagMock).toHaveBeenCalledWith(plantTag(4));
+    expect(updateTagMock).toHaveBeenCalledWith(plantsForGardenTag(1));
+    expect(updateTagMock).toHaveBeenCalledWith(gardenTag(1));
   });
 
   it('surfaces a non-404 ApiError as a failure', async () => {

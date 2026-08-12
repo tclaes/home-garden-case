@@ -10,7 +10,7 @@ import {
   type UpdateGardenInput,
 } from '@itp-home-garden/shared-api-contracts';
 import { ApiError, apiUrl, authHeaders, resilientFetch } from '@itp-home-garden/web-api-client';
-import { revalidateTag } from 'next/cache';
+import { updateTag } from 'next/cache';
 import { GARDENS_LIST_TAG, gardenTag } from './cache-tags.js';
 
 export type ActionResult<T> = { ok: true; data: T } | { ok: false; error: string };
@@ -39,7 +39,7 @@ export async function createGardenAction(input: CreateGardenInput): Promise<Acti
       body: parsed.data,
       retries: 0,
     });
-    revalidateTag(GARDENS_LIST_TAG);
+    updateTag(GARDENS_LIST_TAG);
     return { ok: true, data: garden };
   } catch (error) {
     return toActionError(error, 'Could not create the garden. Please try again.');
@@ -63,8 +63,8 @@ export async function updateGardenAction(
       body: parsed.data,
       retries: 2,
     });
-    revalidateTag(GARDENS_LIST_TAG);
-    revalidateTag(gardenTag(gardenId));
+    updateTag(GARDENS_LIST_TAG);
+    updateTag(gardenTag(gardenId));
     return { ok: true, data: garden };
   } catch (error) {
     return toActionError(error, 'Could not update the garden. Please try again.');
@@ -84,13 +84,13 @@ export async function deleteGardenAction(gardenId: number): Promise<ActionResult
       headers: authHeaders(),
       retries: 2,
     });
-    revalidateTag(GARDENS_LIST_TAG);
-    revalidateTag(gardenTag(gardenId));
+    updateTag(GARDENS_LIST_TAG);
+    updateTag(gardenTag(gardenId));
     return { ok: true, data: null };
   } catch (error) {
     if (error instanceof ApiError && error.status === 404) {
-      revalidateTag(GARDENS_LIST_TAG);
-      revalidateTag(gardenTag(gardenId));
+      updateTag(GARDENS_LIST_TAG);
+      updateTag(gardenTag(gardenId));
       return { ok: true, data: null };
     }
     return toActionError(error, 'Could not delete the garden. Please try again.');

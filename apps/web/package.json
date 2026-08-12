@@ -8,9 +8,14 @@
       "type:app"
     ],
     "targets": {
+      "build": {
+        "options": {
+          "command": "next build --webpack"
+        }
+      },
       "dev": {
         "options": {
-          "command": "next dev -p 4200"
+          "command": "next dev -p 4200 --webpack"
         }
       },
       "start": {
@@ -21,7 +26,7 @@
     }
   },
   "dependencies": {
-    "next": "~15.2.4",
+    "next": "~16.3.0",
     "react": "^19.0.0",
     "react-dom": "^19.0.0",
     "@itp-home-garden/shared-api-contracts": "*",
