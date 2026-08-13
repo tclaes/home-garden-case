@@ -32,7 +32,8 @@
         "libs/shared/domain/*",
         "libs/web/api-client/*",
         "libs/web/data-access-gardens/*",
-        "libs/web/data-access-plants/*"
+        "libs/web/data-access-plants/*",
+        "libs/web/data-access-users/*"
       ]
     },
     {
@@ -79,7 +80,8 @@
         "libs/shared/domain/*",
         "libs/web/api-client/*",
         "libs/web/data-access-gardens/*",
-        "libs/web/data-access-plants/*"
+        "libs/web/data-access-plants/*",
+        "libs/web/data-access-users/*"
       ],
       "options": {
         "typecheck": {

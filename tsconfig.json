@@ -28,6 +28,9 @@
       "path": "./libs/web/data-access-plants"
     },
     {
+      "path": "./libs/web/data-access-users"
+    },
+    {
       "path": "./libs/web/ui"
     },
     {
@@ -35,6 +38,9 @@
     },
     {
       "path": "./libs/web/feature-plants"
+    },
+    {
+      "path": "./libs/web/feature-users"
     }
   ]
 }
