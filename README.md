@@ -52,9 +52,10 @@ The case explicitly allows either. I picked **Next.js (App Router)** over Remix 
 for three reasons, roughly in order of weight:
 
 1. **Caching is a first-class Next primitive.** The case asks for "a theoretical way to speed up
-   the application for frequently used data." Next's Data Cache + tag-based `revalidateTag` let
-   me *implement* that, not just describe it — see [Caching strategy](#caching-strategy). With
-   Remix/React Router you'd build that layer yourself around the loaders.
+   the application for frequently used data." Next's Data Cache + tag-based invalidation
+   (`updateTag`) let me *implement* that, not just describe it — see
+   [Caching strategy](#caching-strategy). With Remix/React Router you'd build that layer yourself
+   around the loaders.
 2. **Continuity.** `@remix-run/react` is pinned at 2.17.5 in the npm registry; the project has
    folded into React Router (now v8), and Remix v3 is a separate rewrite. Next is one continuous,
    unambiguous line to build on.
@@ -151,23 +152,42 @@ On top of that:
 
 ## Caching strategy
 
-Reads (`getGardens`, `getGardenById`, `getPlantsByGardenId`, `getPlantById` in
-`libs/web/data-access-*`) use Next's Data Cache with tags:
+No separate caching library (SWR, React Query, Redis, ...) — Next's built-in fetch Data Cache is
+enough for this kind of CRUD app, and it keeps `libs/web/api-client` purely generic (retry/backoff/
+timeout, no domain knowledge). Reads (`getGardens`, `getGardenById`, `getPlantsByGardenId`,
+`getPlantById` in `libs/web/data-access-*`) opt into it with tags:
 
 ```ts
 next: { tags: ['gardens'], revalidate: 60 }
 ```
 
-Server Actions call `revalidateTag` after a successful mutation — targeted, not a blanket
-`revalidatePath`:
+Cache tags are deliberately fine-grained, one per entity/list (`cache-tags.ts` in each
+`data-access-*` lib), not one blanket "everything" tag:
 
-- create/update/delete a garden → `revalidateTag('gardens')` + `revalidateTag('garden-{id}')`
-- create/update/delete a plant → `revalidateTag('garden-{id}-plants')` +
-  `revalidateTag('garden-{id}')` (the garden detail page shows a capacity summary that depends on
-  the plant list)
+- `gardens` (list) + `garden-{id}` (detail)
+- `garden-{id}-plants` (list per garden) + `plant-{id}` (detail)
 
-The `revalidate: 60` is a safety-net window on top of tag invalidation, in case a mutation happens
-through another client that bypasses our Server Actions (Bruno, another browser tab).
+**Invalidation has two layers:**
+
+1. **Tag-based (primary)** — Server Actions call `updateTag` (not the older `revalidateTag`) after
+   a successful mutation, targeted at exactly the tags that just went stale:
+   - create/update/delete a garden → `updateTag('gardens')` + `updateTag('garden-{id}')`
+   - create/update/delete a plant → `updateTag('garden-{id}-plants')` + `updateTag('garden-{id}')`
+     (the garden detail page shows a capacity summary derived from the plant list, so a plant
+     mutation invalidates the garden too, not just the plant list)
+   - moving a plant to a different garden (`updatePlantAction`) invalidates *both* gardens' tags —
+     the old garden's plant list/capacity and the new one's
+
+   `updateTag` is used instead of `revalidateTag` because it invalidates the cache *and* makes the
+   fresh data visible within the same Server Action, so the UI reflects the mutation immediately
+   without an extra round trip.
+2. **Time-based (`revalidate: 60`, safety net)** — on top of tag invalidation, in case a mutation
+   happens through a client that bypasses our Server Actions entirely (Bruno, another browser tab).
+   Without it, such a change would never surface until an unrelated tag invalidation happened to
+   touch the same data.
+
+Cache invalidation only ever runs after a *confirmed* successful mutation, never optimistically —
+consistent with the retry policy below, which also only retries methods that are safe to repeat.
 
 ## The overcrowding rule
 
