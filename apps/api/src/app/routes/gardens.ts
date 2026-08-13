@@ -4,6 +4,7 @@ import { z } from 'zod/v4';
 import {
   internalServerErrorResponseSchema,
   notFoundErrorResponseSchema,
+  unauthorizedErrorResponseSchema,
   validationErrorResponseSchema,
   createGardenSchema,
   gardenIdParamsSchema,
@@ -13,9 +14,14 @@ import {
   emptyResponseSchema,
 } from '@itp-home-garden/shared-api-contracts';
 import { GardenService } from '../services/garden.service';
+import { requireUserId } from '../shared/require-user-id';
 
 export default async function (fastify: FastifyInstance) {
   const gardenService = fastify.diContainer.resolve<GardenService>('gardenService');
+
+  fastify.addHook('onRequest', async (request) => {
+    request.userId = requireUserId(request);
+  });
 
   /**
    * GET /gardens
@@ -29,12 +35,13 @@ export default async function (fastify: FastifyInstance) {
         tags: ['gardens'],
         response: {
           200: gardensResponseSchema,
+          401: unauthorizedErrorResponseSchema,
           500: internalServerErrorResponseSchema,
         },
       },
     },
-    async (_, reply) => {
-      const gardens = await gardenService.getAllGardens();
+    async (request, reply) => {
+      const gardens = await gardenService.getAllGardens(request.userId);
       return reply.send(gardens);
     },
   );
@@ -53,13 +60,14 @@ export default async function (fastify: FastifyInstance) {
         response: {
           200: gardenResponseSchema,
           400: validationErrorResponseSchema,
+          401: unauthorizedErrorResponseSchema,
           404: notFoundErrorResponseSchema,
           500: internalServerErrorResponseSchema,
         },
       },
     },
     async (request, reply) => {
-      const garden = await gardenService.getGardenById(request.params.gardenId);
+      const garden = await gardenService.getGardenById(request.params.gardenId, request.userId);
       return reply.send(garden);
     },
   );
@@ -80,12 +88,13 @@ export default async function (fastify: FastifyInstance) {
         response: {
           201: gardenResponseSchema,
           400: validationErrorResponseSchema,
+          401: unauthorizedErrorResponseSchema,
           500: internalServerErrorResponseSchema,
         },
       },
     },
     async (request, reply) => {
-      const garden = await gardenService.createGarden(request.body);
+      const garden = await gardenService.createGarden(request.body, request.userId);
       return reply.status(201).send(garden);
     },
   );
@@ -108,13 +117,18 @@ export default async function (fastify: FastifyInstance) {
         response: {
           200: gardenResponseSchema,
           400: validationErrorResponseSchema,
+          401: unauthorizedErrorResponseSchema,
           404: notFoundErrorResponseSchema,
           500: internalServerErrorResponseSchema,
         },
       },
     },
     async (request, reply) => {
-      const garden = await gardenService.updateGarden(request.params.gardenId, request.body);
+      const garden = await gardenService.updateGarden(
+        request.params.gardenId,
+        request.body,
+        request.userId,
+      );
       return reply.send(garden);
     },
   );
@@ -135,13 +149,14 @@ export default async function (fastify: FastifyInstance) {
           response: {
             204: emptyResponseSchema,
             400: validationErrorResponseSchema,
+            401: unauthorizedErrorResponseSchema,
             404: notFoundErrorResponseSchema,
             500: internalServerErrorResponseSchema,
           },
         },
       },
       async (request, reply) => {
-        await gardenService.deleteGarden(request.params.gardenId);
+        await gardenService.deleteGarden(request.params.gardenId, request.userId);
         return reply.status(204).send();
       },
     );

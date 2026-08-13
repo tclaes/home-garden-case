@@ -11,6 +11,11 @@
       "import": "./src/index.ts",
       "default": "./src/index.ts"
     },
+    "./queries": {
+      "types": "./src/lib/queries.ts",
+      "import": "./src/lib/queries.ts",
+      "default": "./src/lib/queries.ts"
+    },
     "./package.json": "./package.json"
   },
   "nx": {

@@ -4,6 +4,7 @@ import { z } from 'zod/v4';
 import {
   internalServerErrorResponseSchema,
   notFoundErrorResponseSchema,
+  unauthorizedErrorResponseSchema,
   validationErrorResponseSchema,
   gardenIdParamsSchema,
   emptyResponseSchema,
@@ -14,9 +15,14 @@ import {
   updatePlantSchema,
 } from '@itp-home-garden/shared-api-contracts';
 import { PlantService } from '../services/plant.service';
+import { requireUserId } from '../shared/require-user-id';
 
 export default async function (fastify: FastifyInstance) {
   const plantService = fastify.diContainer.resolve<PlantService>('plantService');
+
+  fastify.addHook('onRequest', async (request) => {
+    request.userId = requireUserId(request);
+  });
 
   /**
    * GET /plants/:plantId
@@ -32,13 +38,14 @@ export default async function (fastify: FastifyInstance) {
         response: {
           200: plantResponseSchema,
           400: validationErrorResponseSchema,
+          401: unauthorizedErrorResponseSchema,
           404: notFoundErrorResponseSchema,
           500: internalServerErrorResponseSchema,
         },
       },
     },
     async (request, reply) => {
-      const plant = await plantService.getPlantById(request.params.plantId);
+      const plant = await plantService.getPlantById(request.params.plantId, request.userId);
       return reply.send(plant);
     },
   );
@@ -57,13 +64,17 @@ export default async function (fastify: FastifyInstance) {
         response: {
           200: plantsResponseSchema,
           400: validationErrorResponseSchema,
+          401: unauthorizedErrorResponseSchema,
           404: notFoundErrorResponseSchema,
           500: internalServerErrorResponseSchema,
         },
       },
     },
     async (request, reply) => {
-      const plants = await plantService.getPlantsByGardenId(request.params.gardenId);
+      const plants = await plantService.getPlantsByGardenId(
+        request.params.gardenId,
+        request.userId,
+      );
       return reply.send(plants);
     },
   );
@@ -84,13 +95,14 @@ export default async function (fastify: FastifyInstance) {
         response: {
           201: plantResponseSchema,
           400: validationErrorResponseSchema,
+          401: unauthorizedErrorResponseSchema,
           404: notFoundErrorResponseSchema,
           500: internalServerErrorResponseSchema,
         },
       },
     },
     async (request, reply) => {
-      const plant = await plantService.createPlant(request.body);
+      const plant = await plantService.createPlant(request.body, request.userId);
       return reply.status(201).send(plant);
     },
   );
@@ -113,13 +125,18 @@ export default async function (fastify: FastifyInstance) {
         response: {
           200: plantResponseSchema,
           400: validationErrorResponseSchema,
+          401: unauthorizedErrorResponseSchema,
           404: notFoundErrorResponseSchema,
           500: internalServerErrorResponseSchema,
         },
       },
     },
     async (request, reply) => {
-      const plant = await plantService.updatePlant(request.params.plantId, request.body);
+      const plant = await plantService.updatePlant(
+        request.params.plantId,
+        request.body,
+        request.userId,
+      );
       return reply.send(plant);
     },
   );
@@ -140,13 +157,14 @@ export default async function (fastify: FastifyInstance) {
           response: {
             204: emptyResponseSchema,
             400: validationErrorResponseSchema,
+            401: unauthorizedErrorResponseSchema,
             404: notFoundErrorResponseSchema,
             500: internalServerErrorResponseSchema,
           },
         },
       },
       async (request, reply) => {
-        await plantService.deletePlant(request.params.plantId);
+        await plantService.deletePlant(request.params.plantId, request.userId);
         return reply.status(204).send();
       },
     );

@@ -1,8 +1,8 @@
 import { notFound } from 'next/navigation';
 import { sumPlantSurfaceArea } from '@itp-home-garden/shared-domain';
 import { ApiError } from '@itp-home-garden/web-api-client';
-import { getGardenById } from '@itp-home-garden/web-data-access-gardens';
-import { getPlantById, getPlantsByGardenId } from '@itp-home-garden/web-data-access-plants';
+import { getGardenById } from '@itp-home-garden/web-data-access-gardens/queries';
+import { getPlantById, getPlantsByGardenId } from '@itp-home-garden/web-data-access-plants/queries';
 import { DeletePlantButton, PlantForm } from '@itp-home-garden/web-feature-plants';
 import { gardenIdParamsSchema, plantIdParamsSchema } from '@itp-home-garden/shared-api-contracts';
 

@@ -16,6 +16,11 @@
       "import": "./src/lib/session.ts",
       "default": "./src/lib/session.ts"
     },
+    "./session-cookie-name": {
+      "types": "./src/lib/session-cookie-name.ts",
+      "import": "./src/lib/session-cookie-name.ts",
+      "default": "./src/lib/session-cookie-name.ts"
+    },
     "./package.json": "./package.json"
   },
   "nx": {

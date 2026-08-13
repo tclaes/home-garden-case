@@ -10,8 +10,7 @@ import {
   type UpdateGardenInput,
 } from '@itp-home-garden/shared-api-contracts';
 import { ApiError, apiUrl, authHeaders, resilientFetch } from '@itp-home-garden/web-api-client';
-import { updateTag } from 'next/cache';
-import { GARDENS_LIST_TAG, gardenTag } from './cache-tags.js';
+import { userHeaders } from './user-context.js';
 
 export type ActionResult<T> = { ok: true; data: T } | { ok: false; error: string };
 
@@ -35,11 +34,10 @@ export async function createGardenAction(input: CreateGardenInput): Promise<Acti
   try {
     const garden = await resilientFetch(apiUrl('/gardens'), gardenResponseSchema, {
       method: 'POST',
-      headers: authHeaders(),
+      headers: { ...authHeaders(), ...(await userHeaders()) },
       body: parsed.data,
       retries: 0,
     });
-    updateTag(GARDENS_LIST_TAG);
     return { ok: true, data: garden };
   } catch (error) {
     return toActionError(error, 'Could not create the garden. Please try again.');
@@ -59,12 +57,10 @@ export async function updateGardenAction(
   try {
     const garden = await resilientFetch(apiUrl(`/gardens/${gardenId}`), gardenResponseSchema, {
       method: 'PUT',
-      headers: authHeaders(),
+      headers: { ...authHeaders(), ...(await userHeaders()) },
       body: parsed.data,
       retries: 2,
     });
-    updateTag(GARDENS_LIST_TAG);
-    updateTag(gardenTag(gardenId));
     return { ok: true, data: garden };
   } catch (error) {
     return toActionError(error, 'Could not update the garden. Please try again.');
@@ -76,11 +72,9 @@ export async function deleteGardenAction(gardenId: number): Promise<ActionResult
   try {
     await resilientFetch(apiUrl(`/gardens/${gardenId}`), emptyResponseSchema, {
       method: 'DELETE',
-      headers: authHeaders(),
+      headers: { ...authHeaders(), ...(await userHeaders()) },
       retries: 2,
     });
-    updateTag(GARDENS_LIST_TAG);
-    updateTag(gardenTag(gardenId));
     return { ok: true, data: null };
   } catch (error) {
     return toActionError(error, 'Could not delete the garden. Please try again.');

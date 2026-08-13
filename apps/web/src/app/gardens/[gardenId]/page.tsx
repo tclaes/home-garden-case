@@ -1,7 +1,7 @@
 import Link from 'next/link';
 import { notFound } from 'next/navigation';
 import { Suspense } from 'react';
-import { getGardenById } from '@itp-home-garden/web-data-access-gardens';
+import { getGardenById } from '@itp-home-garden/web-data-access-gardens/queries';
 import { ApiError } from '@itp-home-garden/web-api-client';
 import { gardenIdParamsSchema } from '@itp-home-garden/shared-api-contracts';
 import { DeleteGardenButton } from '@itp-home-garden/web-feature-gardens';

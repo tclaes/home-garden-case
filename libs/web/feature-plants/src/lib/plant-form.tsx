@@ -45,7 +45,7 @@ export function PlantForm({ gardenId, totalSurfaceArea, usedSurfaceArea, plant }
     async (_prevState, formData) => {
       const input = parseFormData(formData, gardenId);
       const result = isEdit
-        ? await updatePlantAction(plant.plantId, gardenId, input)
+        ? await updatePlantAction(plant.plantId, input)
         : await createPlantAction(input);
 
       if (result.ok) {

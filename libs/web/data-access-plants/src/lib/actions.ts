@@ -10,9 +10,7 @@ import {
   type UpdatePlantInput,
 } from '@itp-home-garden/shared-api-contracts';
 import { ApiError, apiUrl, authHeaders, resilientFetch } from '@itp-home-garden/web-api-client';
-import { gardenTag } from '@itp-home-garden/web-data-access-gardens';
-import { updateTag } from 'next/cache';
-import { plantsForGardenTag, plantTag } from './cache-tags.js';
+import { userHeaders } from '@itp-home-garden/web-data-access-gardens/user-context';
 
 export type ActionResult<T> = { ok: true; data: T } | { ok: false; error: string };
 
@@ -37,23 +35,19 @@ export async function createPlantAction(input: CreatePlantInput): Promise<Action
   try {
     const plant = await resilientFetch(apiUrl('/plants'), plantResponseSchema, {
       method: 'POST',
-      headers: authHeaders(),
+      headers: { ...authHeaders(), ...(await userHeaders()) },
       body: parsed.data,
       retries: 0,
     });
-    updateTag(plantsForGardenTag(plant.gardenId));
-    updateTag(gardenTag(plant.gardenId));
     return { ok: true, data: plant };
   } catch (error) {
     return toActionError(error, 'Could not add the plant. Please try again.');
   }
 }
 
-/** PUT is idempotent, so retries are safe. `previousGardenId` lets us invalidate the old garden's
- * plant list too, in case the plant was moved to a different garden. */
+/** PUT is idempotent, so retries are safe. */
 export async function updatePlantAction(
   plantId: number,
-  previousGardenId: number,
   input: UpdatePlantInput,
 ): Promise<ActionResult<Plant>> {
   const parsed = updatePlantSchema.safeParse(input);
@@ -64,17 +58,10 @@ export async function updatePlantAction(
   try {
     const plant = await resilientFetch(apiUrl(`/plants/${plantId}`), plantResponseSchema, {
       method: 'PUT',
-      headers: authHeaders(),
+      headers: { ...authHeaders(), ...(await userHeaders()) },
       body: parsed.data,
       retries: 2,
     });
-    updateTag(plantTag(plantId));
-    updateTag(plantsForGardenTag(previousGardenId));
-    updateTag(gardenTag(previousGardenId));
-    if (plant.gardenId !== previousGardenId) {
-      updateTag(plantsForGardenTag(plant.gardenId));
-      updateTag(gardenTag(plant.gardenId));
-    }
     return { ok: true, data: plant };
   } catch (error) {
     return toActionError(error, 'Could not update the plant. Please try again.');
@@ -82,19 +69,13 @@ export async function updatePlantAction(
 }
 
 /** DELETE is idempotent, so retries are safe. */
-export async function deletePlantAction(
-  plantId: number,
-  gardenId: number,
-): Promise<ActionResult<null>> {
+export async function deletePlantAction(plantId: number): Promise<ActionResult<null>> {
   try {
     await resilientFetch(apiUrl(`/plants/${plantId}`), emptyResponseSchema, {
       method: 'DELETE',
-      headers: authHeaders(),
+      headers: { ...authHeaders(), ...(await userHeaders()) },
       retries: 2,
     });
-    updateTag(plantTag(plantId));
-    updateTag(plantsForGardenTag(gardenId));
-    updateTag(gardenTag(gardenId));
     return { ok: true, data: null };
   } catch (error) {
     return toActionError(error, 'Could not delete the plant. Please try again.');

@@ -28,7 +28,7 @@ export function DeletePlantButton({ plantId, gardenId }: { plantId: number; gard
         disabled={isPending}
         onClick={() =>
           startTransition(async () => {
-            const result = await deletePlantAction(plantId, gardenId);
+            const result = await deletePlantAction(plantId);
             if (result.ok) {
               router.push(`/gardens/${gardenId}`);
             } else {

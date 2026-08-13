@@ -44,6 +44,7 @@ z.globalRegistry.add(updateGardenSchema, { id: 'UpdateGarden' });
 
 export const gardenResponseSchema = createGardenSchema.safeExtend({
   gardenId: z.number(),
+  userId: z.number(),
   createdAt: z.coerce.string(),
   updatedAt: z.coerce.string(),
 });

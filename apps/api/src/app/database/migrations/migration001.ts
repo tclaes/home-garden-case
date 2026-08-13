@@ -16,6 +16,7 @@ async function up(db: Kysely<Database>) {
   await db.schema
     .createTable('garden')
     .addColumn('gardenId', 'integer', (col) => col.primaryKey().autoIncrement())
+    .addColumn('userId', 'integer', (col) => col.references('user.userId').notNull())
     .addColumn('gardenName', 'text', (col) => col.notNull())
     .addColumn('totalSurfaceArea', 'real', (col) => col.notNull())
     .addColumn('locationDescription', 'text')
@@ -24,6 +25,8 @@ async function up(db: Kysely<Database>) {
     .addColumn('createdAt', 'text', (col) => col.defaultTo(sql`CURRENT_TIMESTAMP`).notNull())
     .addColumn('updatedAt', 'text', (col) => col.defaultTo(sql`CURRENT_TIMESTAMP`).notNull())
     .execute();
+
+  await db.schema.createIndex('garden_user_id_index').on('garden').column('userId').execute();
 
   await db.schema
     .createTable('plant')

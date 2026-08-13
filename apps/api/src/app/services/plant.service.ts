@@ -15,42 +15,48 @@ export class PlantService {
   }
 
   /**
-   * Get a plant by ID
-   * @throws Error if plant not found
+   * Get a plant by ID, scoped to the owner of its garden
+   * @throws Error if plant not found or its garden is not owned by userId
    */
-  async getPlantById(plantId: number): Promise<Plant> {
+  async getPlantById(plantId: number, userId: number): Promise<Plant> {
     const plant = await this.plantRepository.findById(plantId);
     if (!plant) {
       throw new NotFoundError(`Plant with ID ${plantId} not found`);
     }
+
+    const garden = await this.gardenRepository.findById(plant.gardenId);
+    if (!garden || garden.userId !== userId) {
+      throw new NotFoundError(`Plant with ID ${plantId} not found`);
+    }
+
     return plant;
   }
 
   /**
-   * Get all plants in a specific garden
-   * @throws Error if garden not found
+   * Get all plants in a specific garden, scoped to its owner
+   * @throws Error if garden not found or not owned by userId
    */
-  async getPlantsByGardenId(gardenId: number): Promise<Plant[]> {
-    // Verify garden exists
+  async getPlantsByGardenId(gardenId: number, userId: number): Promise<Plant[]> {
+    // Verify garden exists and is owned by userId
     const garden = await this.gardenRepository.findById(gardenId);
-    if (!garden) {
-      throw new ValidationError(`Garden with ID ${gardenId} not found`);
+    if (!garden || garden.userId !== userId) {
+      throw new NotFoundError(`Garden with ID ${gardenId} not found`);
     }
 
     return await this.plantRepository.findByGardenId(gardenId);
   }
 
   /**
-   * Create a new plant
-   * @throws Error if validation fails or garden doesn't exist
+   * Create a new plant, in a garden owned by userId
+   * @throws Error if validation fails or garden doesn't exist / isn't owned by userId
    */
-  async createPlant(data: NewPlant): Promise<Plant> {
+  async createPlant(data: NewPlant, userId: number): Promise<Plant> {
     // Validate with Zod schema
     const validatedData = createPlantSchema.parse(data);
 
-    // Verify garden exists
+    // Verify garden exists and is owned by userId
     const garden = await this.gardenRepository.findById(validatedData.gardenId);
-    if (!garden) {
+    if (!garden || garden.userId !== userId) {
       throw new NotFoundError(`Garden with ID ${validatedData.gardenId} not found`);
     }
 
@@ -72,25 +78,31 @@ export class PlantService {
   }
 
   /**
-   * Update a plant
-   * @throws Error if plant not found, validation fails, or garden doesn't exist
+   * Update a plant, scoped to the owner of its (current and, if changing, target) garden
+   * @throws Error if plant not found, validation fails, or garden doesn't exist / isn't owned by userId
    */
-  async updatePlant(plantId: number, data: PlantUpdate): Promise<Plant> {
+  async updatePlant(plantId: number, data: PlantUpdate, userId: number): Promise<Plant> {
     // Verify plant exists
     const existingPlant = await this.plantRepository.findById(plantId);
     if (!existingPlant) {
       throw new NotFoundError(`Plant with ID ${plantId} not found`);
     }
 
+    // Verify the plant's current garden is owned by userId
+    const currentGarden = await this.gardenRepository.findById(existingPlant.gardenId);
+    if (!currentGarden || currentGarden.userId !== userId) {
+      throw new NotFoundError(`Plant with ID ${plantId} not found`);
+    }
+
     // Validate with Zod schema
     const validatedData = updatePlantSchema.parse(data);
 
-    // If garden is being changed, verify new garden exists
+    // If garden is being changed, verify new garden exists and is owned by userId
     const targetGardenId = validatedData.gardenId ?? existingPlant.gardenId;
     if (validatedData.gardenId && validatedData.gardenId !== existingPlant.gardenId) {
       const newGarden = await this.gardenRepository.findById(validatedData.gardenId);
-      if (!newGarden) {
-        throw new ValidationError(`Garden with ID ${validatedData.gardenId} not found`);
+      if (!newGarden || newGarden.userId !== userId) {
+        throw new NotFoundError(`Garden with ID ${validatedData.gardenId} not found`);
       }
     }
 
@@ -122,12 +134,17 @@ export class PlantService {
   }
 
   /**
-   * Delete a plant
-   * @throws Error if plant not found
+   * Delete a plant, scoped to the owner of its garden
+   * @throws Error if plant not found or its garden is not owned by userId
    */
-  async deletePlant(plantId: number): Promise<void> {
+  async deletePlant(plantId: number, userId: number): Promise<void> {
     const plant = await this.plantRepository.findById(plantId);
     if (!plant) {
+      throw new NotFoundError(`Plant with ID ${plantId} not found`);
+    }
+
+    const garden = await this.gardenRepository.findById(plant.gardenId);
+    if (!garden || garden.userId !== userId) {
       throw new NotFoundError(`Plant with ID ${plantId} not found`);
     }
 

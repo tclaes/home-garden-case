@@ -9,10 +9,10 @@ export class GardenRepository {
   }
 
   /**
-   * Find all gardens
+   * Find all gardens belonging to a user
    */
-  async findAll(): Promise<Garden[]> {
-    return await this.db.selectFrom('garden').selectAll().execute();
+  async findAllByUserId(userId: number): Promise<Garden[]> {
+    return await this.db.selectFrom('garden').where('userId', '=', userId).selectAll().execute();
   }
 
   /**

@@ -8,9 +8,21 @@ test.describe.configure({ retries: 2 });
 test.setTimeout(60_000);
 
 test('create a garden, add a plant, and block overcrowding', async ({ page }) => {
+  const emailAddress = `e2e-${Date.now()}@example.com`;
   const gardenName = `E2E Garden ${Date.now()}`;
 
-  await page.goto('/gardens');
+  await page.goto('/register');
+  await page.getByLabel('Email address').fill(emailAddress);
+  await page.getByRole('button', { name: 'Register' }).click();
+  await expect(page.getByRole('heading', { name: 'Account created' })).toBeVisible({
+    timeout: 15_000,
+  });
+
+  await page.goto('/login');
+  await page.getByLabel('Email address').fill(emailAddress);
+  await page.getByRole('button', { name: 'Log in' }).click();
+  await expect(page).toHaveURL('/gardens', { timeout: 15_000 });
+
   await page.getByRole('link', { name: 'New garden' }).click();
 
   await page.getByLabel('Name').fill(gardenName);

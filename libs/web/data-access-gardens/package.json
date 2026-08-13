@@ -11,6 +11,16 @@
       "import": "./src/index.ts",
       "default": "./src/index.ts"
     },
+    "./queries": {
+      "types": "./src/lib/queries.ts",
+      "import": "./src/lib/queries.ts",
+      "default": "./src/lib/queries.ts"
+    },
+    "./user-context": {
+      "types": "./src/lib/user-context.ts",
+      "import": "./src/lib/user-context.ts",
+      "default": "./src/lib/user-context.ts"
+    },
     "./package.json": "./package.json"
   },
   "nx": {
@@ -21,6 +31,7 @@
   },
   "dependencies": {
     "@itp-home-garden/web-api-client": "*",
+    "@itp-home-garden/web-data-access-users": "*",
     "@itp-home-garden/shared-api-contracts": "*",
     "next": "~16.3.0",
     "zod": "^4.1.12"

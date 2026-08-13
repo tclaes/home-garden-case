@@ -5,7 +5,7 @@ import {
   isResponseSerializationError,
 } from 'fastify-type-provider-zod';
 import { ZodError } from 'zod/v4';
-import { ConflictError, NotFoundError, ValidationError } from '../shared/errors';
+import { ConflictError, NotFoundError, UnauthorizedError, ValidationError } from '../shared/errors';
 
 export default fp(async function (fastify: FastifyInstance) {
   fastify.setErrorHandler(
@@ -51,6 +51,10 @@ export default fp(async function (fastify: FastifyInstance) {
             return reply.status(404).send({ error: 'Not found error', details: [error.message] });
           case ConflictError:
             return reply.status(409).send({ error: 'Conflict error', details: [error.message] });
+          case UnauthorizedError:
+            return reply
+              .status(401)
+              .send({ error: 'Unauthorized error', details: [error.message] });
           case ValidationError:
             return reply.status(400).send({ error: 'Validation error', details: [error.message] });
         }

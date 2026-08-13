@@ -1,5 +1,5 @@
 import { notFound } from 'next/navigation';
-import { getGardenById } from '@itp-home-garden/web-data-access-gardens';
+import { getGardenById } from '@itp-home-garden/web-data-access-gardens/queries';
 import { ApiError } from '@itp-home-garden/web-api-client';
 import { GardenForm } from '@itp-home-garden/web-feature-gardens';
 import { gardenIdParamsSchema } from '@itp-home-garden/shared-api-contracts';
