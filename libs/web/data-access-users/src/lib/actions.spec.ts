@@ -3,6 +3,7 @@ import { ApiError } from '@itp-home-garden/web-api-client';
 
 const resilientFetchMock = vi.fn();
 const cookieSetMock = vi.fn();
+const cookieDeleteMock = vi.fn();
 
 vi.mock('@itp-home-garden/web-api-client', async () => {
   const actual = await vi.importActual<typeof import('@itp-home-garden/web-api-client')>(
@@ -15,10 +16,10 @@ vi.mock('@itp-home-garden/web-api-client', async () => {
 });
 
 vi.mock('next/headers', () => ({
-  cookies: async () => ({ set: cookieSetMock }),
+  cookies: async () => ({ set: cookieSetMock, delete: cookieDeleteMock }),
 }));
 
-const { registerUserAction, loginUserAction } = await import('./actions.js');
+const { registerUserAction, loginUserAction, logoutUserAction } = await import('./actions.js');
 
 const validUser = { emailAddress: 'test@example.com' };
 
@@ -141,5 +142,17 @@ describe('loginUserAction', () => {
     if (!result.ok) {
       expect(result.error).toMatch(/try again/i);
     }
+  });
+});
+
+describe('logoutUserAction', () => {
+  beforeEach(() => {
+    cookieDeleteMock.mockReset();
+  });
+
+  it('clears the session cookie', async () => {
+    await logoutUserAction();
+
+    expect(cookieDeleteMock).toHaveBeenCalledWith('session_user_id');
   });
 });

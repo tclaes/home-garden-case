@@ -1,5 +1,6 @@
 import Link from 'next/link';
 import './global.css';
+import { logoutUserAction } from '@itp-home-garden/web-data-access-users';
 import { getCurrentUser } from '@itp-home-garden/web-data-access-users/session';
 
 export const metadata = {
@@ -22,7 +23,22 @@ export default async function RootLayout({ children }: { children: React.ReactNo
               🌱 Home Garden
             </Link>
             {displayName ? (
-              <span className="text-sm font-medium text-gray-900">{displayName}</span>
+              <form action={logoutUserAction} className="group relative">
+                <button
+                  type="submit"
+                  className="text-sm font-medium text-gray-900 hover:underline"
+                  aria-describedby="logout-tooltip"
+                >
+                  {displayName}
+                </button>
+                <span
+                  id="logout-tooltip"
+                  role="tooltip"
+                  className="pointer-events-none absolute right-0 top-full z-10 mt-2 whitespace-nowrap rounded-md bg-gray-900 px-2 py-1 text-xs text-white opacity-0 transition-opacity group-hover:opacity-100 group-focus-within:opacity-100"
+                >
+                  Log out
+                </span>
+              </form>
             ) : (
               <Link href="/login" className="text-sm font-medium text-gray-600 hover:text-gray-900">
                 Login

@@ -83,3 +83,8 @@ export async function loginUserAction(input: {
     return toActionError(error, 'Could not log in. Please try again.');
   }
 }
+
+export async function logoutUserAction(): Promise<void> {
+  const cookieStore = await cookies();
+  cookieStore.delete(SESSION_COOKIE_NAME);
+}
