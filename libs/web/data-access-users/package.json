@@ -11,6 +11,11 @@
       "import": "./src/index.ts",
       "default": "./src/index.ts"
     },
+    "./session": {
+      "types": "./src/lib/session.ts",
+      "import": "./src/lib/session.ts",
+      "default": "./src/lib/session.ts"
+    },
     "./package.json": "./package.json"
   },
   "nx": {

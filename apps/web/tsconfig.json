@@ -58,6 +58,9 @@
       "path": "../../libs/web/feature-users"
     },
     {
+      "path": "../../libs/web/data-access-users"
+    },
+    {
       "path": "../../libs/shared/domain"
     },
     {
