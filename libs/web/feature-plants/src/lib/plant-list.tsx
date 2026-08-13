@@ -1,5 +1,5 @@
 import Link from 'next/link';
-import { getPlantsByGardenId } from '@itp-home-garden/web-data-access-plants';
+import { getPlantsByGardenId } from '@itp-home-garden/web-data-access-plants/queries';
 import { buttonVariants } from '@itp-home-garden/web-ui';
 import { PlantCard } from './plant-card.js';
 

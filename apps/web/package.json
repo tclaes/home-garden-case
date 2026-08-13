@@ -34,6 +34,7 @@
     "@itp-home-garden/web-api-client": "*",
     "@itp-home-garden/web-data-access-gardens": "*",
     "@itp-home-garden/web-data-access-plants": "*",
+    "@itp-home-garden/web-data-access-users": "*",
     "@itp-home-garden/web-feature-gardens": "*",
     "@itp-home-garden/web-feature-plants": "*",
     "@itp-home-garden/web-ui": "*"

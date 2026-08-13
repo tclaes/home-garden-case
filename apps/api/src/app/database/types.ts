@@ -22,6 +22,7 @@ export type UserUpdate = Updateable<UserTable>;
 
 export interface GardenTable {
   gardenId: Generated<number>;
+  userId: number; // foreign key to User
   gardenName: string;
   totalSurfaceArea: number; // in square meters
   locationDescription: string | null; // e.g., "Backyard", "Patio"

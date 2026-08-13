@@ -1,5 +1,5 @@
 import { sumPlantSurfaceArea } from '@itp-home-garden/shared-domain';
-import { getPlantsByGardenId } from '@itp-home-garden/web-data-access-plants';
+import { getPlantsByGardenId } from '@itp-home-garden/web-data-access-plants/queries';
 import { ProgressBar } from '@itp-home-garden/web-ui';
 
 export async function GardenCapacitySummary({

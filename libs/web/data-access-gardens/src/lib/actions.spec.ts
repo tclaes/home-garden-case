@@ -1,9 +1,8 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 import { ApiError } from '@itp-home-garden/web-api-client';
-import { GARDENS_LIST_TAG, gardenTag } from './cache-tags.js';
 
 const resilientFetchMock = vi.fn();
-const updateTagMock = vi.fn();
+const requireCurrentUserIdMock = vi.fn();
 
 vi.mock('@itp-home-garden/web-api-client', async () => {
   const actual = await vi.importActual<typeof import('@itp-home-garden/web-api-client')>(
@@ -15,18 +14,25 @@ vi.mock('@itp-home-garden/web-api-client', async () => {
   };
 });
 
-vi.mock('next/cache', () => ({
-  updateTag: (...args: unknown[]) => updateTagMock(...args),
+vi.mock('@itp-home-garden/web-data-access-users/session', () => ({
+  requireCurrentUserId: (...args: unknown[]) => requireCurrentUserIdMock(...args),
 }));
 
 const { createGardenAction, updateGardenAction, deleteGardenAction } = await import('./actions.js');
 
 const validGarden = { gardenName: 'Backyard', totalSurfaceArea: 20 };
 
+/** Mimics the error next/navigation's redirect() throws — must propagate, not be swallowed into
+ * a generic ActionResult, or the unauthenticated user never actually gets redirected to /login. */
+class RedirectError extends Error {
+  digest = 'NEXT_REDIRECT;replace;/login;307;';
+}
+
 describe('createGardenAction', () => {
   beforeEach(() => {
     resilientFetchMock.mockReset();
-    updateTagMock.mockReset();
+    requireCurrentUserIdMock.mockReset();
+    requireCurrentUserIdMock.mockResolvedValue(1);
   });
 
   it('rejects invalid input without calling the API', async () => {
@@ -36,18 +42,21 @@ describe('createGardenAction', () => {
     expect(resilientFetchMock).not.toHaveBeenCalled();
   });
 
-  it('creates the garden and revalidates the gardens list on success', async () => {
-    resilientFetchMock.mockResolvedValue({ ...validGarden, gardenId: 1 });
+  it('creates the garden, attaching the current user id as a trusted header', async () => {
+    resilientFetchMock.mockResolvedValue({ ...validGarden, gardenId: 1, userId: 1 });
 
     const result = await createGardenAction(validGarden);
 
-    expect(result).toEqual({ ok: true, data: { ...validGarden, gardenId: 1 } });
+    expect(result).toEqual({ ok: true, data: { ...validGarden, gardenId: 1, userId: 1 } });
     expect(resilientFetchMock).toHaveBeenCalledWith(
       expect.stringContaining('/gardens'),
       expect.anything(),
-      expect.objectContaining({ method: 'POST', retries: 0 }),
+      expect.objectContaining({
+        method: 'POST',
+        retries: 0,
+        headers: expect.objectContaining({ 'X-User-Id': '1' }),
+      }),
     );
-    expect(updateTagMock).toHaveBeenCalledWith(GARDENS_LIST_TAG);
   });
 
   it('surfaces the backend message on an ApiError (e.g. an overcrowding-style validation failure)', async () => {
@@ -56,7 +65,6 @@ describe('createGardenAction', () => {
     const result = await createGardenAction(validGarden);
 
     expect(result).toEqual({ ok: false, error: 'total surface area is invalid' });
-    expect(updateTagMock).not.toHaveBeenCalled();
   });
 
   it('falls back to a generic message on an unexpected error (e.g. network failure)', async () => {
@@ -69,16 +77,24 @@ describe('createGardenAction', () => {
       expect(result.error).toMatch(/try again/i);
     }
   });
+
+  it('propagates the redirect when there is no session, instead of returning a generic error', async () => {
+    requireCurrentUserIdMock.mockRejectedValue(new RedirectError());
+
+    await expect(createGardenAction(validGarden)).rejects.toThrow(RedirectError);
+    expect(resilientFetchMock).not.toHaveBeenCalled();
+  });
 });
 
 describe('updateGardenAction', () => {
   beforeEach(() => {
     resilientFetchMock.mockReset();
-    updateTagMock.mockReset();
+    requireCurrentUserIdMock.mockReset();
+    requireCurrentUserIdMock.mockResolvedValue(1);
   });
 
-  it('updates the garden and revalidates both the list and the detail tag', async () => {
-    resilientFetchMock.mockResolvedValue({ ...validGarden, gardenId: 5 });
+  it('updates the garden, attaching the current user id as a trusted header', async () => {
+    resilientFetchMock.mockResolvedValue({ ...validGarden, gardenId: 5, userId: 1 });
 
     const result = await updateGardenAction(5, validGarden);
 
@@ -86,20 +102,30 @@ describe('updateGardenAction', () => {
     expect(resilientFetchMock).toHaveBeenCalledWith(
       expect.stringContaining('/gardens/5'),
       expect.anything(),
-      expect.objectContaining({ method: 'PUT', retries: 2 }),
+      expect.objectContaining({
+        method: 'PUT',
+        retries: 2,
+        headers: expect.objectContaining({ 'X-User-Id': '1' }),
+      }),
     );
-    expect(updateTagMock).toHaveBeenCalledWith(GARDENS_LIST_TAG);
-    expect(updateTagMock).toHaveBeenCalledWith(gardenTag(5));
+  });
+
+  it('propagates the redirect when there is no session, instead of returning a generic error', async () => {
+    requireCurrentUserIdMock.mockRejectedValue(new RedirectError());
+
+    await expect(updateGardenAction(5, validGarden)).rejects.toThrow(RedirectError);
+    expect(resilientFetchMock).not.toHaveBeenCalled();
   });
 });
 
 describe('deleteGardenAction', () => {
   beforeEach(() => {
     resilientFetchMock.mockReset();
-    updateTagMock.mockReset();
+    requireCurrentUserIdMock.mockReset();
+    requireCurrentUserIdMock.mockResolvedValue(1);
   });
 
-  it('deletes the garden and revalidates both tags', async () => {
+  it('deletes the garden, attaching the current user id as a trusted header', async () => {
     resilientFetchMock.mockResolvedValue(null);
 
     const result = await deleteGardenAction(7);
@@ -108,9 +134,18 @@ describe('deleteGardenAction', () => {
     expect(resilientFetchMock).toHaveBeenCalledWith(
       expect.stringContaining('/gardens/7'),
       expect.anything(),
-      expect.objectContaining({ method: 'DELETE', retries: 2 }),
+      expect.objectContaining({
+        method: 'DELETE',
+        retries: 2,
+        headers: expect.objectContaining({ 'X-User-Id': '1' }),
+      }),
     );
-    expect(updateTagMock).toHaveBeenCalledWith(GARDENS_LIST_TAG);
-    expect(updateTagMock).toHaveBeenCalledWith(gardenTag(7));
+  });
+
+  it('propagates the redirect when there is no session, instead of returning a generic error', async () => {
+    requireCurrentUserIdMock.mockRejectedValue(new RedirectError());
+
+    await expect(deleteGardenAction(7)).rejects.toThrow(RedirectError);
+    expect(resilientFetchMock).not.toHaveBeenCalled();
   });
 });
