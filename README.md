@@ -280,5 +280,3 @@ A full implementation would add:
 - The e2e suite covers one happy path; a fuller suite would add a dedicated "server rejects
   overcrowding" case that bypasses the client-side guard (e.g. via a direct API call) to prove the
   backend validation independently of the UI.
-- `users` has no UI at all — out of scope per the case (a static token is provided instead of a
-  login flow), but see [Auth](#bonus-authentication--authorization-theoretical) for the plan.
