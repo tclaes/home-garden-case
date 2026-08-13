@@ -4,15 +4,6 @@
   "include": [],
   "references": [
     {
-      "path": "../../shared/api-contracts"
-    },
-    {
-      "path": "../data-access-gardens"
-    },
-    {
-      "path": "../api-client"
-    },
-    {
       "path": "./tsconfig.lib.json"
     },
     {

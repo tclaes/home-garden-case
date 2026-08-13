@@ -3,18 +3,6 @@
   "include": [],
   "references": [
     {
-      "path": "../../shared/domain"
-    },
-    {
-      "path": "../../shared/api-contracts"
-    },
-    {
-      "path": "../data-access-plants"
-    },
-    {
-      "path": "../ui"
-    },
-    {
       "path": "./tsconfig.lib.json"
     },
     {
