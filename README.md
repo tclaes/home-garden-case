@@ -87,9 +87,11 @@ libs/
     api-client/                generic resilient fetch: retry + backoff + timeout, no domain knowledge
     data-access-gardens/       garden CRUD, Server Actions, cache tags
     data-access-plants/        plant CRUD, Server Actions, cache tags
+    data-access-users/         users CRUD, Server Actions
     ui/                        presentational primitives (Button, Card, Input, ProgressBar, …)
     feature-gardens/           garden list/detail/create/edit UI
     feature-plants/            plant list/form/capacity-meter UI
+    feature-users/             users register
 ```
 
 Dependency rules (`eslint.config.mjs`):

@@ -1,0 +1,22 @@
+{
+  "files": [],
+  "include": [],
+  "references": [
+    {
+      "path": "../../shared/api-contracts"
+    },
+    {
+      "path": "../data-access-users"
+    },
+    {
+      "path": "../ui"
+    },
+    {
+      "path": "./tsconfig.lib.json"
+    },
+    {
+      "path": "./tsconfig.spec.json"
+    }
+  ],
+  "extends": "../../../tsconfig.base.json"
+}
