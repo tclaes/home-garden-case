@@ -30,6 +30,12 @@ const validPlant = {
   gardenId: 1,
 };
 
+/** Mimics the error next/navigation's redirect() throws — must propagate, not be swallowed into
+ * a generic ActionResult, or the unauthenticated user never actually gets redirected to /login. */
+class RedirectError extends Error {
+  digest = 'NEXT_REDIRECT;replace;/login;307;';
+}
+
 describe('createPlantAction', () => {
   beforeEach(() => {
     resilientFetchMock.mockReset();
@@ -66,6 +72,13 @@ describe('createPlantAction', () => {
 
     expect(result).toMatchObject({ ok: false, error: expect.stringContaining('exceed') });
   });
+
+  it('propagates the redirect when there is no session, instead of returning a generic error', async () => {
+    userHeadersMock.mockRejectedValue(new RedirectError());
+
+    await expect(createPlantAction(validPlant)).rejects.toThrow(RedirectError);
+    expect(resilientFetchMock).not.toHaveBeenCalled();
+  });
 });
 
 describe('updatePlantAction', () => {
@@ -87,6 +100,13 @@ describe('updatePlantAction', () => {
       expect.objectContaining({ headers: expect.objectContaining({ 'X-User-Id': '1' }) }),
     );
   });
+
+  it('propagates the redirect when there is no session, instead of returning a generic error', async () => {
+    userHeadersMock.mockRejectedValue(new RedirectError());
+
+    await expect(updatePlantAction(3, validPlant)).rejects.toThrow(RedirectError);
+    expect(resilientFetchMock).not.toHaveBeenCalled();
+  });
 });
 
 describe('deletePlantAction', () => {
@@ -107,5 +127,12 @@ describe('deletePlantAction', () => {
       expect.anything(),
       expect.objectContaining({ headers: expect.objectContaining({ 'X-User-Id': '1' }) }),
     );
+  });
+
+  it('propagates the redirect when there is no session, instead of returning a generic error', async () => {
+    userHeadersMock.mockRejectedValue(new RedirectError());
+
+    await expect(deletePlantAction(4)).rejects.toThrow(RedirectError);
+    expect(resilientFetchMock).not.toHaveBeenCalled();
   });
 });

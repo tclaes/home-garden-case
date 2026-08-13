@@ -22,6 +22,12 @@ const { createGardenAction, updateGardenAction, deleteGardenAction } = await imp
 
 const validGarden = { gardenName: 'Backyard', totalSurfaceArea: 20 };
 
+/** Mimics the error next/navigation's redirect() throws — must propagate, not be swallowed into
+ * a generic ActionResult, or the unauthenticated user never actually gets redirected to /login. */
+class RedirectError extends Error {
+  digest = 'NEXT_REDIRECT;replace;/login;307;';
+}
+
 describe('createGardenAction', () => {
   beforeEach(() => {
     resilientFetchMock.mockReset();
@@ -71,6 +77,13 @@ describe('createGardenAction', () => {
       expect(result.error).toMatch(/try again/i);
     }
   });
+
+  it('propagates the redirect when there is no session, instead of returning a generic error', async () => {
+    requireCurrentUserIdMock.mockRejectedValue(new RedirectError());
+
+    await expect(createGardenAction(validGarden)).rejects.toThrow(RedirectError);
+    expect(resilientFetchMock).not.toHaveBeenCalled();
+  });
 });
 
 describe('updateGardenAction', () => {
@@ -96,6 +109,13 @@ describe('updateGardenAction', () => {
       }),
     );
   });
+
+  it('propagates the redirect when there is no session, instead of returning a generic error', async () => {
+    requireCurrentUserIdMock.mockRejectedValue(new RedirectError());
+
+    await expect(updateGardenAction(5, validGarden)).rejects.toThrow(RedirectError);
+    expect(resilientFetchMock).not.toHaveBeenCalled();
+  });
 });
 
 describe('deleteGardenAction', () => {
@@ -120,5 +140,12 @@ describe('deleteGardenAction', () => {
         headers: expect.objectContaining({ 'X-User-Id': '1' }),
       }),
     );
+  });
+
+  it('propagates the redirect when there is no session, instead of returning a generic error', async () => {
+    requireCurrentUserIdMock.mockRejectedValue(new RedirectError());
+
+    await expect(deleteGardenAction(7)).rejects.toThrow(RedirectError);
+    expect(resilientFetchMock).not.toHaveBeenCalled();
   });
 });

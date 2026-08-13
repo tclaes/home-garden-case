@@ -31,10 +31,11 @@ export async function createGardenAction(input: CreateGardenInput): Promise<Acti
     return { ok: false, error: parsed.error.issues[0]?.message ?? 'Invalid garden data' };
   }
 
+  const headers = { ...authHeaders(), ...(await userHeaders()) };
   try {
     const garden = await resilientFetch(apiUrl('/gardens'), gardenResponseSchema, {
       method: 'POST',
-      headers: { ...authHeaders(), ...(await userHeaders()) },
+      headers,
       body: parsed.data,
       retries: 0,
     });
@@ -54,10 +55,11 @@ export async function updateGardenAction(
     return { ok: false, error: parsed.error.issues[0]?.message ?? 'Invalid garden data' };
   }
 
+  const headers = { ...authHeaders(), ...(await userHeaders()) };
   try {
     const garden = await resilientFetch(apiUrl(`/gardens/${gardenId}`), gardenResponseSchema, {
       method: 'PUT',
-      headers: { ...authHeaders(), ...(await userHeaders()) },
+      headers,
       body: parsed.data,
       retries: 2,
     });
@@ -69,10 +71,11 @@ export async function updateGardenAction(
 
 /** DELETE is idempotent (deleting an already-deleted resource is a no-op), so retries are safe. */
 export async function deleteGardenAction(gardenId: number): Promise<ActionResult<null>> {
+  const headers = { ...authHeaders(), ...(await userHeaders()) };
   try {
     await resilientFetch(apiUrl(`/gardens/${gardenId}`), emptyResponseSchema, {
       method: 'DELETE',
-      headers: { ...authHeaders(), ...(await userHeaders()) },
+      headers,
       retries: 2,
     });
     return { ok: true, data: null };

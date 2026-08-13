@@ -32,10 +32,11 @@ export async function createPlantAction(input: CreatePlantInput): Promise<Action
     return { ok: false, error: parsed.error.issues[0]?.message ?? 'Invalid plant data' };
   }
 
+  const headers = { ...authHeaders(), ...(await userHeaders()) };
   try {
     const plant = await resilientFetch(apiUrl('/plants'), plantResponseSchema, {
       method: 'POST',
-      headers: { ...authHeaders(), ...(await userHeaders()) },
+      headers,
       body: parsed.data,
       retries: 0,
     });
@@ -55,10 +56,11 @@ export async function updatePlantAction(
     return { ok: false, error: parsed.error.issues[0]?.message ?? 'Invalid plant data' };
   }
 
+  const headers = { ...authHeaders(), ...(await userHeaders()) };
   try {
     const plant = await resilientFetch(apiUrl(`/plants/${plantId}`), plantResponseSchema, {
       method: 'PUT',
-      headers: { ...authHeaders(), ...(await userHeaders()) },
+      headers,
       body: parsed.data,
       retries: 2,
     });
@@ -70,10 +72,11 @@ export async function updatePlantAction(
 
 /** DELETE is idempotent, so retries are safe. */
 export async function deletePlantAction(plantId: number): Promise<ActionResult<null>> {
+  const headers = { ...authHeaders(), ...(await userHeaders()) };
   try {
     await resilientFetch(apiUrl(`/plants/${plantId}`), emptyResponseSchema, {
       method: 'DELETE',
-      headers: { ...authHeaders(), ...(await userHeaders()) },
+      headers,
       retries: 2,
     });
     return { ok: true, data: null };
