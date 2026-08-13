@@ -52,9 +52,10 @@ The case explicitly allows either. I picked **Next.js (App Router)** over Remix 
 for three reasons, roughly in order of weight:
 
 1. **Caching is a first-class Next primitive.** The case asks for "a theoretical way to speed up
-   the application for frequently used data." Next's Data Cache + tag-based `revalidateTag` let
-   me *implement* that, not just describe it — see [Caching strategy](#caching-strategy). With
-   Remix/React Router you'd build that layer yourself around the loaders.
+   the application for frequently used data." Next's Data Cache + tag-based invalidation
+   (`updateTag`) let me *implement* that, not just describe it — see
+   [Caching strategy](#caching-strategy). With Remix/React Router you'd build that layer yourself
+   around the loaders.
 2. **Continuity.** `@remix-run/react` is pinned at 2.17.5 in the npm registry; the project has
    folded into React Router (now v8), and Remix v3 is a separate rewrite. Next is one continuous,
    unambiguous line to build on.
