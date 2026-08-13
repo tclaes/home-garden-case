@@ -7,6 +7,9 @@
       "path": "../../shared/api-contracts"
     },
     {
+      "path": "../data-access-auth"
+    },
+    {
       "path": "../api-client"
     },
     {

@@ -19,6 +19,10 @@ vi.mock('next/cache', () => ({
   updateTag: (...args: unknown[]) => updateTagMock(...args),
 }));
 
+vi.mock('@itp-home-garden/web-data-access-auth', () => ({
+  authHeaders: async () => ({}),
+}));
+
 const { createGardenAction, updateGardenAction, deleteGardenAction } = await import('./actions.js');
 
 const validGarden = { gardenName: 'Backyard', totalSurfaceArea: 20 };

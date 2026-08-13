@@ -1,4 +1,4 @@
-import { notFound } from 'next/navigation';
+import { notFound, redirect } from 'next/navigation';
 import { getGardenById } from '@itp-home-garden/web-data-access-gardens';
 import { ApiError } from '@itp-home-garden/web-api-client';
 import { GardenForm } from '@itp-home-garden/web-feature-gardens';
@@ -24,6 +24,9 @@ export default async function EditGardenPage({
   } catch (error) {
     if (error instanceof ApiError && error.status === 404) {
       notFound();
+    }
+    if (error instanceof ApiError && error.status === 401) {
+      redirect('/login');
     }
     throw error;
   }

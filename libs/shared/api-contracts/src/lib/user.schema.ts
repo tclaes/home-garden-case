@@ -43,3 +43,7 @@ z.globalRegistry.add(userResponseSchema, { id: 'User' });
 
 export const usersResponseSchema = z.array(userResponseSchema);
 z.globalRegistry.add(usersResponseSchema, { id: 'Users' });
+
+export type User = z.infer<typeof userResponseSchema>;
+export type CreateUserInput = z.infer<typeof createUserSchema>;
+export type UpdateUserInput = z.infer<typeof updateUserSchema>;

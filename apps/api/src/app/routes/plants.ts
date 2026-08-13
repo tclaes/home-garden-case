@@ -4,6 +4,7 @@ import { z } from 'zod/v4';
 import {
   internalServerErrorResponseSchema,
   notFoundErrorResponseSchema,
+  unauthorizedErrorResponseSchema,
   validationErrorResponseSchema,
   gardenIdParamsSchema,
   emptyResponseSchema,
@@ -20,11 +21,12 @@ export default async function (fastify: FastifyInstance) {
 
   /**
    * GET /plants/:plantId
-   * Get a plant by ID
+   * Get a plant by ID (its garden must be owned by the authenticated user)
    */
   fastify.withTypeProvider<ZodTypeProvider>().get<{ Params: z.infer<typeof plantIdParamsSchema> }>(
     '/plants/:plantId',
     {
+      preHandler: [fastify.authenticate],
       schema: {
         description: 'Get a plant by ID',
         tags: ['plants'],
@@ -32,24 +34,26 @@ export default async function (fastify: FastifyInstance) {
         response: {
           200: plantResponseSchema,
           400: validationErrorResponseSchema,
+          401: unauthorizedErrorResponseSchema,
           404: notFoundErrorResponseSchema,
           500: internalServerErrorResponseSchema,
         },
       },
     },
     async (request, reply) => {
-      const plant = await plantService.getPlantById(request.params.plantId);
+      const plant = await plantService.getPlantById(request.params.plantId, request.user.userId);
       return reply.send(plant);
     },
   );
 
   /**
    * GET /plants/garden/:gardenId
-   * Get all plants in a specific garden
+   * Get all plants in a specific garden (must be owned by the authenticated user)
    */
   fastify.withTypeProvider<ZodTypeProvider>().get<{ Params: z.infer<typeof gardenIdParamsSchema> }>(
     '/plants/garden/:gardenId',
     {
+      preHandler: [fastify.authenticate],
       schema: {
         description: 'Get all plants in a specific garden',
         tags: ['plants'],
@@ -57,26 +61,31 @@ export default async function (fastify: FastifyInstance) {
         response: {
           200: plantsResponseSchema,
           400: validationErrorResponseSchema,
+          401: unauthorizedErrorResponseSchema,
           404: notFoundErrorResponseSchema,
           500: internalServerErrorResponseSchema,
         },
       },
     },
     async (request, reply) => {
-      const plants = await plantService.getPlantsByGardenId(request.params.gardenId);
+      const plants = await plantService.getPlantsByGardenId(
+        request.params.gardenId,
+        request.user.userId,
+      );
       return reply.send(plants);
     },
   );
 
   /**
    * POST /plants
-   * Create a new plant
+   * Create a new plant (its garden must be owned by the authenticated user)
    */
   fastify.withTypeProvider<ZodTypeProvider>().post<{
     Body: z.infer<typeof createPlantSchema>;
   }>(
     '/plants',
     {
+      preHandler: [fastify.authenticate],
       schema: {
         description: 'Create a new plant',
         tags: ['plants'],
@@ -84,20 +93,21 @@ export default async function (fastify: FastifyInstance) {
         response: {
           201: plantResponseSchema,
           400: validationErrorResponseSchema,
+          401: unauthorizedErrorResponseSchema,
           404: notFoundErrorResponseSchema,
           500: internalServerErrorResponseSchema,
         },
       },
     },
     async (request, reply) => {
-      const plant = await plantService.createPlant(request.body);
+      const plant = await plantService.createPlant(request.user.userId, request.body);
       return reply.status(201).send(plant);
     },
   );
 
   /**
    * PUT /plants/:plantId
-   * Update a plant
+   * Update a plant (its garden must be owned by the authenticated user)
    */
   fastify.withTypeProvider<ZodTypeProvider>().put<{
     Params: z.infer<typeof plantIdParamsSchema>;
@@ -105,6 +115,7 @@ export default async function (fastify: FastifyInstance) {
   }>(
     '/plants/:plantId',
     {
+      preHandler: [fastify.authenticate],
       schema: {
         description: 'Update a plant',
         tags: ['plants'],
@@ -113,26 +124,32 @@ export default async function (fastify: FastifyInstance) {
         response: {
           200: plantResponseSchema,
           400: validationErrorResponseSchema,
+          401: unauthorizedErrorResponseSchema,
           404: notFoundErrorResponseSchema,
           500: internalServerErrorResponseSchema,
         },
       },
     },
     async (request, reply) => {
-      const plant = await plantService.updatePlant(request.params.plantId, request.body);
+      const plant = await plantService.updatePlant(
+        request.params.plantId,
+        request.user.userId,
+        request.body,
+      );
       return reply.send(plant);
     },
   );
 
   /**
    * DELETE /plants/:plantId
-   * Delete a plant
+   * Delete a plant (its garden must be owned by the authenticated user)
    */
   fastify
     .withTypeProvider<ZodTypeProvider>()
     .delete<{ Params: z.infer<typeof plantIdParamsSchema> }>(
       '/plants/:plantId',
       {
+        preHandler: [fastify.authenticate],
         schema: {
           description: 'Delete a plant',
           tags: ['plants'],
@@ -140,13 +157,14 @@ export default async function (fastify: FastifyInstance) {
           response: {
             204: emptyResponseSchema,
             400: validationErrorResponseSchema,
+            401: unauthorizedErrorResponseSchema,
             404: notFoundErrorResponseSchema,
             500: internalServerErrorResponseSchema,
           },
         },
       },
       async (request, reply) => {
-        await plantService.deletePlant(request.params.plantId);
+        await plantService.deletePlant(request.params.plantId, request.user.userId);
         return reply.status(204).send();
       },
     );

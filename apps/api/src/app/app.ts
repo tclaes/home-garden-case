@@ -9,6 +9,7 @@ import { MigratorService } from './database/migrator';
 import { GardenRepository } from './database/repositories/garden.repository';
 import { PlantRepository } from './database/repositories/plant.repository';
 import { UserRepository } from './database/repositories/user.repository';
+import { AuthService } from './services/auth.service';
 import { GardenService } from './services/garden.service';
 import { PlantService } from './services/plant.service';
 import { UserService } from './services/user.service';
@@ -27,6 +28,7 @@ export async function app(fastify: FastifyInstance, opts: AppOptions) {
     userService: asClass(UserService).singleton(),
     gardenService: asClass(GardenService).singleton(),
     plantService: asClass(PlantService).singleton(),
+    authService: asClass(AuthService).singleton(),
   });
 
   // Register fastifyAwilixPlugin before routes so diContainer is available

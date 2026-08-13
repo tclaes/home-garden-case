@@ -11,8 +11,3 @@ export function apiUrl(path: string): string {
   const normalizedPath = path.replace(/^\/+/, '');
   return `${baseUrl}/${normalizedPath}`;
 }
-
-export function authHeaders(): Record<string, string> {
-  const token = process.env.API_AUTH_TOKEN;
-  return token ? { Authorization: `Bearer ${token}` } : {};
-}

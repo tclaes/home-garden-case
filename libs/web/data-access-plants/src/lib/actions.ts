@@ -9,7 +9,8 @@ import {
   type CreatePlantInput,
   type UpdatePlantInput,
 } from '@itp-home-garden/shared-api-contracts';
-import { ApiError, apiUrl, authHeaders, resilientFetch } from '@itp-home-garden/web-api-client';
+import { ApiError, apiUrl, resilientFetch } from '@itp-home-garden/web-api-client';
+import { authHeaders } from '@itp-home-garden/web-data-access-auth';
 import { gardenTag } from '@itp-home-garden/web-data-access-gardens';
 import { updateTag } from 'next/cache';
 import { plantsForGardenTag, plantTag } from './cache-tags.js';
@@ -37,7 +38,7 @@ export async function createPlantAction(input: CreatePlantInput): Promise<Action
   try {
     const plant = await resilientFetch(apiUrl('/plants'), plantResponseSchema, {
       method: 'POST',
-      headers: authHeaders(),
+      headers: await authHeaders(),
       body: parsed.data,
       retries: 0,
     });
@@ -64,7 +65,7 @@ export async function updatePlantAction(
   try {
     const plant = await resilientFetch(apiUrl(`/plants/${plantId}`), plantResponseSchema, {
       method: 'PUT',
-      headers: authHeaders(),
+      headers: await authHeaders(),
       body: parsed.data,
       retries: 2,
     });
@@ -89,7 +90,7 @@ export async function deletePlantAction(
   try {
     await resilientFetch(apiUrl(`/plants/${plantId}`), emptyResponseSchema, {
       method: 'DELETE',
-      headers: authHeaders(),
+      headers: await authHeaders(),
       retries: 2,
     });
     updateTag(plantTag(plantId));

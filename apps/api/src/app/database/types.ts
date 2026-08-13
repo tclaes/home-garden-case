@@ -12,6 +12,7 @@ export interface UserTable {
   lastName: string | null;
   age: number | null;
   emailAddress: string;
+  passwordHash: string | null;
   createdAt: ColumnType<Date, string | undefined, never>;
   updatedAt: ColumnType<Date, string | undefined, never>;
 }
@@ -27,6 +28,7 @@ export interface GardenTable {
   locationDescription: string | null; // e.g., "Backyard", "Patio"
   latitude: number | null; // optional geographic coordinate
   longitude: number | null; // optional geographic coordinate
+  userId: number; // foreign key to User (owner)
   createdAt: ColumnType<Date, string | undefined, never>;
   updatedAt: ColumnType<Date, string | undefined, never>;
 }

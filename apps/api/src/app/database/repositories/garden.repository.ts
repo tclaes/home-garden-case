@@ -16,6 +16,13 @@ export class GardenRepository {
   }
 
   /**
+   * Find all gardens owned by a specific user
+   */
+  async findAllByUserId(userId: number): Promise<Garden[]> {
+    return await this.db.selectFrom('garden').where('userId', '=', userId).selectAll().execute();
+  }
+
+  /**
    * Find a garden by gardenId
    */
   async findById(gardenId: number): Promise<Garden | undefined> {

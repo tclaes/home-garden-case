@@ -14,6 +14,13 @@ export const notFoundErrorResponseSchema = z.object({
 
 z.globalRegistry.add(notFoundErrorResponseSchema, { id: 'NotFoundErrorResponse' });
 
+export const unauthorizedErrorResponseSchema = z.object({
+  error: z.string(),
+  details: z.union([z.array(z.string()), z.object({}).loose()]),
+});
+
+z.globalRegistry.add(unauthorizedErrorResponseSchema, { id: 'UnauthorizedErrorResponse' });
+
 export const conflictErrorResponseSchema = z.object({
   error: z.string(),
   details: z.union([z.array(z.string()), z.object({}).loose()]),

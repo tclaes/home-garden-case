@@ -1,4 +1,4 @@
-import { notFound } from 'next/navigation';
+import { notFound, redirect } from 'next/navigation';
 import { sumPlantSurfaceArea } from '@itp-home-garden/shared-domain';
 import { ApiError } from '@itp-home-garden/web-api-client';
 import { getGardenById } from '@itp-home-garden/web-data-access-gardens';
@@ -22,6 +22,9 @@ export default async function NewPlantPage({ params }: { params: Promise<{ garde
   } catch (error) {
     if (error instanceof ApiError && error.status === 404) {
       notFound();
+    }
+    if (error instanceof ApiError && error.status === 401) {
+      redirect('/login');
     }
     throw error;
   }

@@ -21,6 +21,7 @@
   },
   "dependencies": {
     "@itp-home-garden/web-api-client": "*",
+    "@itp-home-garden/web-data-access-auth": "*",
     "@itp-home-garden/shared-api-contracts": "*",
     "next": "~16.3.0",
     "zod": "^4.1.12"

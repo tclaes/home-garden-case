@@ -35,6 +35,12 @@
     },
     {
       "path": "./libs/web/feature-plants"
+    },
+    {
+      "path": "./libs/web/data-access-auth"
+    },
+    {
+      "path": "./libs/web/feature-auth"
     }
   ]
 }

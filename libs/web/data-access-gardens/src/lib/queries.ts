@@ -1,5 +1,6 @@
 import { gardenResponseSchema, gardensResponseSchema } from '@itp-home-garden/shared-api-contracts';
-import { apiUrl, authHeaders, resilientFetch } from '@itp-home-garden/web-api-client';
+import { apiUrl, resilientFetch } from '@itp-home-garden/web-api-client';
+import { authHeaders } from '@itp-home-garden/web-data-access-auth';
 import { GARDENS_LIST_TAG, gardenTag } from './cache-tags.js';
 
 /** Reads retry automatically — GET is idempotent, so retrying the flaky backend is safe. */
@@ -10,7 +11,7 @@ const REVALIDATE_SECONDS = 60;
 
 export async function getGardens() {
   return resilientFetch(apiUrl('/gardens'), gardensResponseSchema, {
-    headers: authHeaders(),
+    headers: await authHeaders(),
     retries: READ_RETRIES,
     next: { tags: [GARDENS_LIST_TAG], revalidate: REVALIDATE_SECONDS },
   });
@@ -18,7 +19,7 @@ export async function getGardens() {
 
 export async function getGardenById(gardenId: number) {
   return resilientFetch(apiUrl(`/gardens/${gardenId}`), gardenResponseSchema, {
-    headers: authHeaders(),
+    headers: await authHeaders(),
     retries: READ_RETRIES,
     next: { tags: [gardenTag(gardenId)], revalidate: REVALIDATE_SECONDS },
   });

@@ -1,5 +1,5 @@
 import Link from 'next/link';
-import { notFound } from 'next/navigation';
+import { notFound, redirect } from 'next/navigation';
 import { Suspense } from 'react';
 import { getGardenById } from '@itp-home-garden/web-data-access-gardens';
 import { ApiError } from '@itp-home-garden/web-api-client';
@@ -16,6 +16,11 @@ async function getGardenOrNotFound(gardenId: number) {
   } catch (error) {
     if (error instanceof ApiError && error.status === 404) {
       notFound();
+    }
+    // A present-but-expired/invalid session cookie surfaces as a 401 — send the user back to
+    // log in rather than letting the generic error boundary handle it.
+    if (error instanceof ApiError && error.status === 401) {
+      redirect('/login');
     }
     throw error;
   }

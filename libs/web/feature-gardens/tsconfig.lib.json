@@ -40,6 +40,9 @@
   "include": ["src/**/*.js", "src/**/*.jsx", "src/**/*.ts", "src/**/*.tsx"],
   "references": [
     {
+      "path": "../api-client/tsconfig.lib.json"
+    },
+    {
       "path": "../../shared/api-contracts/tsconfig.lib.json"
     },
     {

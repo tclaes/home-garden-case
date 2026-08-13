@@ -9,8 +9,15 @@ test.setTimeout(60_000);
 
 test('create a garden, add a plant, and block overcrowding', async ({ page }) => {
   const gardenName = `E2E Garden ${Date.now()}`;
+  const email = `e2e-${Date.now()}@example.com`;
 
-  await page.goto('/gardens');
+  await page.goto('/register');
+  await page.getByLabel('Email').fill(email);
+  await page.getByLabel('Password').fill('password123');
+  await page.getByRole('button', { name: 'Create account' }).click();
+
+  await expect(page).toHaveURL(/\/gardens$/, { timeout: 15_000 });
+
   await page.getByRole('link', { name: 'New garden' }).click();
 
   await page.getByLabel('Name').fill(gardenName);

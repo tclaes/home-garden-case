@@ -1,4 +1,5 @@
 import Link from 'next/link';
+import { getCurrentUser, logoutAction } from '@itp-home-garden/web-data-access-auth';
 import './global.css';
 
 export const metadata = {
@@ -6,7 +7,9 @@ export const metadata = {
   description: 'Manage your gardens and plants',
 };
 
-export default function RootLayout({ children }: { children: React.ReactNode }) {
+export default async function RootLayout({ children }: { children: React.ReactNode }) {
+  const user = await getCurrentUser();
+
   return (
     <html lang="en">
       <body>
@@ -15,6 +18,16 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
             <Link href="/gardens" className="text-lg font-semibold text-green-800">
               🌱 Home Garden
             </Link>
+            {user && (
+              <div className="flex items-center gap-3 text-sm text-gray-600">
+                <span>Hi {user.firstName ?? user.emailAddress}</span>
+                <form action={logoutAction}>
+                  <button type="submit" className="font-medium text-green-800 hover:underline">
+                    Logout
+                  </button>
+                </form>
+              </div>
+            )}
           </div>
         </header>
         <main className="mx-auto max-w-5xl px-4 py-8">{children}</main>

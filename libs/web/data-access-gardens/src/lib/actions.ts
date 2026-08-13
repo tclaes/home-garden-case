@@ -9,7 +9,8 @@ import {
   type CreateGardenInput,
   type UpdateGardenInput,
 } from '@itp-home-garden/shared-api-contracts';
-import { ApiError, apiUrl, authHeaders, resilientFetch } from '@itp-home-garden/web-api-client';
+import { ApiError, apiUrl, resilientFetch } from '@itp-home-garden/web-api-client';
+import { authHeaders } from '@itp-home-garden/web-data-access-auth';
 import { updateTag } from 'next/cache';
 import { GARDENS_LIST_TAG, gardenTag } from './cache-tags.js';
 
@@ -35,7 +36,7 @@ export async function createGardenAction(input: CreateGardenInput): Promise<Acti
   try {
     const garden = await resilientFetch(apiUrl('/gardens'), gardenResponseSchema, {
       method: 'POST',
-      headers: authHeaders(),
+      headers: await authHeaders(),
       body: parsed.data,
       retries: 0,
     });
@@ -59,7 +60,7 @@ export async function updateGardenAction(
   try {
     const garden = await resilientFetch(apiUrl(`/gardens/${gardenId}`), gardenResponseSchema, {
       method: 'PUT',
-      headers: authHeaders(),
+      headers: await authHeaders(),
       body: parsed.data,
       retries: 2,
     });
@@ -76,7 +77,7 @@ export async function deleteGardenAction(gardenId: number): Promise<ActionResult
   try {
     await resilientFetch(apiUrl(`/gardens/${gardenId}`), emptyResponseSchema, {
       method: 'DELETE',
-      headers: authHeaders(),
+      headers: await authHeaders(),
       retries: 2,
     });
     updateTag(GARDENS_LIST_TAG);

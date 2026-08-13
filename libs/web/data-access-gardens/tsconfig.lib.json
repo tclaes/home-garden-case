@@ -17,6 +17,9 @@
       "path": "../../shared/api-contracts/tsconfig.lib.json"
     },
     {
+      "path": "../data-access-auth/tsconfig.lib.json"
+    },
+    {
       "path": "../api-client/tsconfig.lib.json"
     }
   ],
