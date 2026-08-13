@@ -15,11 +15,8 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
             <Link href="/gardens" className="text-lg font-semibold text-green-800">
               🌱 Home Garden
             </Link>
-            <Link
-              href="/register"
-              className="text-sm font-medium text-gray-600 hover:text-gray-900"
-            >
-              Register
+            <Link href="/login" className="text-sm font-medium text-gray-600 hover:text-gray-900">
+              Login
             </Link>
           </div>
         </header>
