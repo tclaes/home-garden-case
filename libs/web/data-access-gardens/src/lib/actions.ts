@@ -24,7 +24,7 @@ function toActionError(error: unknown, fallback: string): { ok: false; error: st
 
 /**
  * Create is not retried automatically: retrying a POST after a timeout risks creating the garden
- * twice. On failure we surface the error and let the user explicitly retry the submit.
+ * twice. On failure, we surface the error and let the user explicitly retry to submit.
  */
 export async function createGardenAction(input: CreateGardenInput): Promise<ActionResult<Garden>> {
   const parsed = createGardenSchema.safeParse(input);
