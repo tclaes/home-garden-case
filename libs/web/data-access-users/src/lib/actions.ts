@@ -9,10 +9,10 @@ import {
   type CreateUserInput,
 } from '@itp-home-garden/shared-api-contracts';
 import { ApiError, apiUrl, authHeaders, resilientFetch } from '@itp-home-garden/web-api-client';
+import { SESSION_COOKIE_NAME } from './session.js';
 
 export type ActionResult<T> = { ok: true; data: T } | { ok: false; error: string };
 
-const SESSION_COOKIE_NAME = 'session_user_id';
 const SESSION_COOKIE_MAX_AGE_SECONDS = 60 * 60 * 24 * 7; // 7 days
 
 function toActionError(error: unknown, fallback: string): { ok: false; error: string } {

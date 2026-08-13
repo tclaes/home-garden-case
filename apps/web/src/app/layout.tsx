@@ -1,12 +1,18 @@
 import Link from 'next/link';
 import './global.css';
+import { getCurrentUser } from '@itp-home-garden/web-data-access-users/session';
 
 export const metadata = {
   title: 'Home Garden',
   description: 'Manage your gardens and plants',
 };
 
-export default function RootLayout({ children }: { children: React.ReactNode }) {
+export default async function RootLayout({ children }: { children: React.ReactNode }) {
+  const user = await getCurrentUser();
+  const displayName = user
+    ? [user.firstName, user.lastName].filter(Boolean).join(' ') || user.emailAddress
+    : null;
+
   return (
     <html lang="en">
       <body>
@@ -15,9 +21,13 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
             <Link href="/gardens" className="text-lg font-semibold text-green-800">
               🌱 Home Garden
             </Link>
-            <Link href="/login" className="text-sm font-medium text-gray-600 hover:text-gray-900">
-              Login
-            </Link>
+            {displayName ? (
+              <span className="text-sm font-medium text-gray-900">{displayName}</span>
+            ) : (
+              <Link href="/login" className="text-sm font-medium text-gray-600 hover:text-gray-900">
+                Login
+              </Link>
+            )}
           </div>
         </header>
         <main className="mx-auto max-w-5xl px-4 py-8">{children}</main>
